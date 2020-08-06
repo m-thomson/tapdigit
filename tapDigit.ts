@@ -38,6 +38,32 @@ type TToken = {
   end:number
 }
 
+type TExpression = {
+  Expression: TNode
+}
+
+type TNode = {
+  Number?:number     // Number literal
+  Identifier?:string // Variable name
+  Unary?:{           // An operation on a single item (eg. -5)
+    operator:string
+    expression:TNode
+  }
+  Binary?:{          // An operation between two items
+    operator:string
+    left:TNode
+    right:TNode
+  }
+  Assignment?:{     // Assign [value] to variable [name]
+    name:string
+    value:TNode
+  }
+  FunctionCall?:{   // Custom functions for non-built-in operations (eg. foo(5))
+    name:string
+    args:TNode[]
+  }
+}
+
 TapDigit.Token = {
     Operator: 'Operator',
     Identifier: 'Identifier',
@@ -257,7 +283,7 @@ TapDigit.Parser = function () {
     let lexer = new TapDigit.Lexer(),
         T = TapDigit.Token;
 
-    function matchOp(token, op) {
+    function matchOp(token, op):boolean {
         return (typeof token !== 'undefined') &&
             token.type === T.Operator &&
             token.value === op;
@@ -265,7 +291,7 @@ TapDigit.Parser = function () {
 
     // ArgumentList := Expression |
     //                 Expression ',' ArgumentList
-    function parseArgumentList() {
+    function parseArgumentList():TNode[] {
         let token, expr, args = [];
 
         while (true) {
@@ -287,7 +313,7 @@ TapDigit.Parser = function () {
 
     // FunctionCall ::= Identifier '(' ')' ||
     //                  Identifier '(' ArgumentList ')'
-    function parseFunctionCall(name) {
+    function parseFunctionCall(name):TNode {
         let token, args = [];
 
         token = lexer.next();
@@ -317,7 +343,7 @@ TapDigit.Parser = function () {
     //             Number |
     //             '(' Assignment ')' |
     //             FunctionCall
-    function parsePrimary() {
+    function parsePrimary():TNode|TExpression {
         let token, expr;
 
         token = lexer.peek();
@@ -361,7 +387,7 @@ TapDigit.Parser = function () {
 
     // Unary ::= Primary |
     //           '-' Unary
-    function parseUnary() {
+    function parseUnary():TNode|TExpression {
         let token, expr;
 
         token = lexer.peek();
@@ -382,7 +408,7 @@ TapDigit.Parser = function () {
     // Multiplicative ::= Unary |
     //                    Multiplicative '*' Unary |
     //                    Multiplicative '/' Unary
-    function parseMultiplicative() {
+    function parseMultiplicative():TNode {
         let expr, token;
 
         expr = parseUnary();
@@ -404,7 +430,7 @@ TapDigit.Parser = function () {
     // Additive ::= Multiplicative |
     //              Additive '+' Multiplicative |
     //              Additive '-' Multiplicative
-    function parseAdditive() {
+    function parseAdditive():TNode {
         let expr, token;
 
         expr = parseMultiplicative();
@@ -425,7 +451,7 @@ TapDigit.Parser = function () {
 
     // Assignment ::= Identifier '=' Assignment |
     //                Additive
-    function parseAssignment() {
+    function parseAssignment():TNode {
         let token, expr;
 
         expr = parseAdditive();
@@ -448,11 +474,11 @@ TapDigit.Parser = function () {
     }
 
     // Expression ::= Assignment
-    function parseExpression() {
+    function parseExpression():TNode {
         return parseAssignment();
     }
 
-    function parse(expression) {
+    function parse(expression):TExpression {
         let expr, token;
 
         lexer.reset(expression);
