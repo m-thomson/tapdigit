@@ -3,7 +3,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="viewport" content="width=device-width maximum-scale=1 initial-scale=1 user-scalable=no">
-<title>Math expression lexer</title>
+<title>Expression evaluator</title>
 <style>
 body {
     background-color: #ddd;
@@ -50,16 +50,15 @@ table td {
 
 <p>Type a math expression:</p>
 <p><input type="text" id="code" autocapitalize="off" spellcheck="false"
-    value="x = 6 + 7" onChange='parse()' onKeyDown='parse()'></input>
+    value="sin(pi/4) * sqrt(2) + 41" onChange='parse()' onKeyDown='parse()'></input>
 
-<p>Tokens:</p>
-<div id="tokens"></div>
+<p id="result">&nbsp;</p>
 
 <p class="footer">Supported tested browsers: IE&nbsp;7+, Firefox&nbsp;4+,
 Safari&nbsp;5+, Chrome&nbsp;9+, Opera&nbsp;11+, Konqueror&nbsp;4.6+.</p>
 
-<script src="../TapDigit.js" type="text/javascript" charset="utf-8"></script>
-<script src="LexerTest.js" type="text/javascript" charset="utf-8"></script>
+<script src="../tapDigit.js" type="text/javascript" charset="utf-8"></script>
+<script src="evalTest.js" type="text/javascript" charset="utf-8"></script>
 <script>parse();</script>
 
 </body>
