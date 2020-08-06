@@ -791,11 +791,11 @@ export const TapDigit = {
       }
     }
 
-    function onInputKeyDown(event): void {
+    function onInputKeyDown(): void {
       updateCursor();
     }
 
-    function onInputKeyUp(event): void {
+    function onInputKeyUp(): void {
       updateEditor();
     }
 
