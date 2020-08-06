@@ -107,11 +107,10 @@ export const TapDigit = {
 
     function createToken(type, value): TToken {
       return {
-        type: type,
-        value: value,
+        type,
+        value,
         start: marker,
-        end: index - 1
-      };
+        end: index - 1 };
     }
 
     function skipSpaces(): void {
@@ -271,11 +270,7 @@ export const TapDigit = {
       return token;
     }
 
-    return {
-      reset: reset,
-      next: next,
-      peek: peek
-    };
+    return { reset, next, peek };
   },
 
   Parser() {
@@ -332,10 +327,7 @@ export const TapDigit = {
       }
 
       return {
-        'FunctionCall': {
-          'name': name,
-          'args': args
-        }
+        FunctionCall: { name, args }
       };
     }
 
@@ -357,17 +349,13 @@ export const TapDigit = {
         if (matchOp(lexer.peek(), '(')) {
           return parseFunctionCall(token.value);
         } else {
-          return {
-            'Identifier': token.value
-          };
+          return { Identifier: token.value };
         }
       }
 
       if (token.type === T.Number) {
         token = lexer.next();
-        return {
-          'Number': token.value
-        };
+        return { Number: token.value };
       }
 
       if (matchOp(token, '(')) {
@@ -377,9 +365,7 @@ export const TapDigit = {
         if (!matchOp(token, ')')) {
           throw new SyntaxError('Expecting )');
         }
-        return {
-          'Expression': expr
-        };
+        return { Expression: expr };
       }
 
       throw new SyntaxError('Parse error, can not process token ' + token.value);
@@ -395,7 +381,7 @@ export const TapDigit = {
         token = lexer.next();
         expr = parseUnary();
         return {
-          'Unary': {
+          Unary: {
             operator: token.value,
             expression: expr
           }
@@ -461,7 +447,7 @@ export const TapDigit = {
         if (matchOp(token, '=')) {
           lexer.next();
           return {
-            'Assignment': {
+            Assignment: {
               name: expr,
               value: parseAssignment()
             }
@@ -490,7 +476,7 @@ export const TapDigit = {
       }
 
       return {
-        'Expression': expr
+        Expression: expr
       };
     }
 
@@ -524,8 +510,8 @@ export const TapDigit = {
     };
 
     return {
-      Constants: Constants,
-      Functions: Functions,
+      Constants,
+      Functions,
       Variables: {}
     };
   },
@@ -609,9 +595,7 @@ export const TapDigit = {
       return exec(tree.Expression)
     }
 
-    return {
-      evaluate: evaluate,
-    }
+    return { evaluate }
   },
 
   Editor(element) {
@@ -920,10 +904,6 @@ export const TapDigit = {
     setupDOM(element);
     updateEditor();
 
-    return {
-      focus: focus,
-      blur: blur,
-      deselect: deselect
-    };
+    return { focus, blur, deselect };
   }
 }
