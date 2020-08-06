@@ -26,6 +26,10 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+  Modifications by Mark Thomson beginning Aug 6, 2020.
+*/
+
 /*jslint sloppy: true */
 /*global document:true,window:true */
 let TapDigit;
