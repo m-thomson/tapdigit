@@ -43,7 +43,7 @@ type TExpression = {
 }
 
 type TNode = {
-  Number?:number     // Number literal
+  Number?:string     // Number literal (as string)
   Identifier?:string // Variable name
   Unary?:{           // An operation on a single item (eg. -5)
     operator:string
@@ -55,7 +55,7 @@ type TNode = {
     right:TNode
   }
   Assignment?:{     // Assign [value] to variable [name]
-    name:string
+    name:{Identifier:string}
     value:TNode
   }
   FunctionCall?:{   // Custom functions for non-built-in operations (eg. foo(5))
@@ -535,22 +535,18 @@ TapDigit.Evaluator = function (ctx) {
     let parser = new TapDigit.Parser(),
         context = (arguments.length < 1) ? new TapDigit.Context() : ctx;
 
-    function exec(node) {
+    function exec(node:TNode):number {
         let left, right, expr, args, i;
-
-        if (node.hasOwnProperty('Expression')) {
-            return exec(node.Expression);
-        }
 
         if (node.hasOwnProperty('Number')) {
             return parseFloat(node.Number);
         }
 
         if (node.hasOwnProperty('Binary')) {
-            node = node.Binary;
-            left = exec(node.left);
-            right = exec(node.right);
-            switch (node.operator) {
+            let subNode = node.Binary;
+            left = exec(subNode.left);
+            right = exec(subNode.right);
+            switch (subNode.operator) {
             case '+':
                 return left + right;
             case '-':
@@ -560,20 +556,20 @@ TapDigit.Evaluator = function (ctx) {
             case '/':
                 return left / right;
             default:
-                throw new SyntaxError('Unknown operator ' + node.operator);
+                throw new SyntaxError('Unknown operator ' + subNode.operator);
             }
         }
 
         if (node.hasOwnProperty('Unary')) {
-            node = node.Unary;
-            expr = exec(node.expression);
-            switch (node.operator) {
+            let subNode = node.Unary;
+            expr = exec(subNode.expression);
+            switch (subNode.operator) {
             case '+':
                 return expr;
             case '-':
                 return -expr;
             default:
-                throw new SyntaxError('Unknown operator ' + node.operator);
+                throw new SyntaxError('Unknown operator ' + subNode.operator);
             }
         }
 
@@ -608,9 +604,9 @@ TapDigit.Evaluator = function (ctx) {
         throw new SyntaxError('Unknown syntax node');
     }
 
-    function evaluate(expr) {
+    function evaluate(expr:string):number {
         let tree = parser.parse(expr);
-        return exec(tree);
+        return exec(tree.Expression);
     }
 
     return {
