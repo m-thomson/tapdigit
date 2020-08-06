@@ -28,7 +28,7 @@
 
 /*jslint sloppy: true */
 /*global document:true,window:true */
-var TapDigit;
+let TapDigit;
 TapDigit = TapDigit || {};
 
 TapDigit.Token = {
@@ -38,19 +38,19 @@ TapDigit.Token = {
 };
 
 TapDigit.Lexer = function () {
-    var expression = '',
+    let expression = '',
         length = 0,
         index = 0,
         marker = 0,
         T = TapDigit.Token;
 
     function peekNextChar() {
-        var idx = index;
+        let idx = index;
         return ((idx < length) ? expression.charAt(idx) : '\x00');
     }
 
     function getNextChar() {
-        var ch = '\x00',
+        let ch = '\x00',
             idx = index;
         if (idx < length) {
             ch = expression.charAt(idx);
@@ -81,7 +81,7 @@ TapDigit.Lexer = function () {
     }
 
     function skipSpaces() {
-        var ch;
+        let ch;
 
         while (index < length) {
             ch = peekNextChar();
@@ -93,7 +93,7 @@ TapDigit.Lexer = function () {
     }
 
     function scanOperator() {
-        var ch = peekNextChar();
+        let ch = peekNextChar();
         if ('+-*/()^%=;,'.indexOf(ch) >= 0) {
             return createToken(T.Operator, getNextChar());
         }
@@ -109,7 +109,7 @@ TapDigit.Lexer = function () {
     }
 
     function scanIdentifier() {
-        var ch, id;
+        let ch, id;
 
         ch = peekNextChar();
         if (!isIdentifierStart(ch)) {
@@ -129,7 +129,7 @@ TapDigit.Lexer = function () {
     }
 
     function scanNumber() {
-        var ch, number;
+        let ch, number;
 
         ch = peekNextChar();
         if (!isDecimalDigit(ch) && (ch !== '.')) {
@@ -194,7 +194,7 @@ TapDigit.Lexer = function () {
     }
 
     function next() {
-        var token;
+        let token;
 
         skipSpaces();
         if (index >= length) {
@@ -223,7 +223,7 @@ TapDigit.Lexer = function () {
     }
 
     function peek() {
-        var token, idx;
+        let token, idx;
 
         idx = index;
         try {
@@ -247,7 +247,7 @@ TapDigit.Lexer = function () {
 
 TapDigit.Parser = function () {
 
-    var lexer = new TapDigit.Lexer(),
+    let lexer = new TapDigit.Lexer(),
         T = TapDigit.Token;
 
     function matchOp(token, op) {
@@ -259,7 +259,7 @@ TapDigit.Parser = function () {
     // ArgumentList := Expression |
     //                 Expression ',' ArgumentList
     function parseArgumentList() {
-        var token, expr, args = [];
+        let token, expr, args = [];
 
         while (true) {
             expr = parseExpression();
@@ -281,7 +281,7 @@ TapDigit.Parser = function () {
     // FunctionCall ::= Identifier '(' ')' ||
     //                  Identifier '(' ArgumentList ')'
     function parseFunctionCall(name) {
-        var token, args = [];
+        let token, args = [];
 
         token = lexer.next();
         if (!matchOp(token, '(')) {
@@ -311,7 +311,7 @@ TapDigit.Parser = function () {
     //             '(' Assignment ')' |
     //             FunctionCall
     function parsePrimary() {
-        var token, expr;
+        let token, expr;
 
         token = lexer.peek();
 
@@ -355,7 +355,7 @@ TapDigit.Parser = function () {
     // Unary ::= Primary |
     //           '-' Unary
     function parseUnary() {
-        var token, expr;
+        let token, expr;
 
         token = lexer.peek();
         if (matchOp(token, '-') || matchOp(token, '+')) {
@@ -376,7 +376,7 @@ TapDigit.Parser = function () {
     //                    Multiplicative '*' Unary |
     //                    Multiplicative '/' Unary
     function parseMultiplicative() {
-        var expr, token;
+        let expr, token;
 
         expr = parseUnary();
         token = lexer.peek();
@@ -398,7 +398,7 @@ TapDigit.Parser = function () {
     //              Additive '+' Multiplicative |
     //              Additive '-' Multiplicative
     function parseAdditive() {
-        var expr, token;
+        let expr, token;
 
         expr = parseMultiplicative();
         token = lexer.peek();
@@ -419,7 +419,7 @@ TapDigit.Parser = function () {
     // Assignment ::= Identifier '=' Assignment |
     //                Additive
     function parseAssignment() {
-        var token, expr;
+        let token, expr;
 
         expr = parseAdditive();
 
@@ -446,7 +446,7 @@ TapDigit.Parser = function () {
     }
 
     function parse(expression) {
-        var expr, token;
+        let expr, token;
 
         lexer.reset(expression);
         expr = parseExpression();
@@ -467,7 +467,7 @@ TapDigit.Parser = function () {
 };
 
 TapDigit.Context = function () {
-    var Constants, Functions;
+    let Constants, Functions;
 
     Constants = {
         pi: 3.1415926535897932384,
@@ -499,11 +499,11 @@ TapDigit.Context = function () {
 
 TapDigit.Evaluator = function (ctx) {
 
-    var parser = new TapDigit.Parser(),
+    let parser = new TapDigit.Parser(),
         context = (arguments.length < 1) ? new TapDigit.Context() : ctx;
 
     function exec(node) {
-        var left, right, expr, args, i;
+        let left, right, expr, args, i;
 
         if (node.hasOwnProperty('Expression')) {
             return exec(node.Expression);
@@ -576,7 +576,7 @@ TapDigit.Evaluator = function (ctx) {
     }
 
     function evaluate(expr) {
-        var tree = parser.parse(expr);
+        let tree = parser.parse(expr);
         return exec(tree);
     }
 
@@ -587,7 +587,7 @@ TapDigit.Evaluator = function (ctx) {
 
 TapDigit.Editor = function (element) {
 
-    var input, editor, cursor, blinkTimer, lexer, hasFocus;
+    let input, editor, cursor, blinkTimer, lexer, hasFocus;
 
     function hideCursor() {
         if (blinkTimer) {
@@ -598,7 +598,7 @@ TapDigit.Editor = function (element) {
     }
 
     function blinkCursor() {
-        var visible = true;
+        let visible = true;
         if (blinkTimer) {
             window.clearInterval(blinkTimer);
         }
@@ -610,7 +610,7 @@ TapDigit.Editor = function (element) {
 
     // Get cursor position from the proxy input and adjust the editor
     function updateCursor() {
-        var start, end, x, y, i, el, cls;
+        let start, end, x, y, i, el, cls;
 
         if (typeof cursor === 'undefined') {
             return;
@@ -658,7 +658,7 @@ TapDigit.Editor = function (element) {
 
     // Get a new text from the proxy input and update the syntax highlight
     function updateEditor() {
-        var expr, tokens, token, i, j, text, str, html;
+        let expr, tokens, token, i, j, text, str, html;
 
         if (typeof lexer === 'undefined') {
             lexer = new TapDigit.Lexer();
@@ -728,7 +728,7 @@ TapDigit.Editor = function (element) {
     }
 
     function deselect() {
-        var el, cls;
+        let el, cls;
         input.selectionEnd = input.selectionStart;
         el = editor.firstChild;
         while (el) {
@@ -775,7 +775,7 @@ TapDigit.Editor = function (element) {
     }
 
     function onEditorMouseDown(event) {
-        var x, y, i, el, x1, y1, x2, y2, anchor;
+        let x, y, i, el, x1, y1, x2, y2, anchor;
 
         deselect();
 
@@ -804,7 +804,7 @@ TapDigit.Editor = function (element) {
         }
 
         function onDocumentMouseMove(event) {
-            var i;
+            let i;
             if (event.target && event.target.parentNode === editor) {
                 for (i = 0; i < editor.childNodes.length; i += 1) {
                     el = editor.childNodes[i];
@@ -844,7 +844,7 @@ TapDigit.Editor = function (element) {
     }
 
     function setupDOM(element) {
-        var container, wrapper;
+        let container, wrapper;
 
         // Proxy input where we capture user keyboard interaction
         input = document.createElement('input');

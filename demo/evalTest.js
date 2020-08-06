@@ -26,7 +26,7 @@
 */
 
 /*global TapDigit:true */
-var evaluator, lexer, evalId;
+let evaluator, lexer, evalId;
 
 function parse() {
     if (evalId) {
@@ -34,7 +34,7 @@ function parse() {
     }
 
     evalId = window.setTimeout(function () {
-        var el, expr;
+        let el, expr;
 
         el = document.getElementById('result')
         expr = document.getElementById('code').value;

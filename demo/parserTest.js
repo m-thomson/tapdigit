@@ -27,7 +27,7 @@
 */
 
 /*global TapDigit:true */
-var lexer, parseId;
+let lexer, parseId;
 
 function parse() {
     if (parseId) {
@@ -35,7 +35,7 @@ function parse() {
     }
 
     parseId = window.setTimeout(function () {
-        var code, str,
+        let code, str,
             lexer, tokens, token, i,
             parser, syntax;
 
@@ -77,7 +77,7 @@ function parse() {
             syntax = parser.parse(code);
 
             function stringify(object, key, depth) {
-                var indent = '',
+                let indent = '',
                     str = '',
                     value = object[key],
                     i,
