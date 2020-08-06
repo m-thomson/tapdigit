@@ -31,6 +31,13 @@
 let TapDigit;
 TapDigit = TapDigit || {};
 
+type TToken = {
+  type:string,
+  value:any,
+  start:number,
+  end:number
+}
+
 TapDigit.Token = {
     Operator: 'Operator',
     Identifier: 'Identifier',
@@ -44,12 +51,12 @@ TapDigit.Lexer = function () {
         marker = 0,
         T = TapDigit.Token;
 
-    function peekNextChar() {
+    function peekNextChar():string {
         let idx = index;
         return ((idx < length) ? expression.charAt(idx) : '\x00');
     }
 
-    function getNextChar() {
+    function getNextChar():string {
         let ch = '\x00',
             idx = index;
         if (idx < length) {
@@ -59,19 +66,19 @@ TapDigit.Lexer = function () {
         return ch;
     }
 
-    function isWhiteSpace(ch) {
+    function isWhiteSpace(ch):boolean {
         return (ch === '\u0009') || (ch === ' ') || (ch === '\u00A0');
     }
 
-    function isLetter(ch) {
+    function isLetter(ch):boolean {
         return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
     }
 
-    function isDecimalDigit(ch) {
+    function isDecimalDigit(ch):boolean {
         return (ch >= '0') && (ch <= '9');
     }
 
-    function createToken(type, value) {
+    function createToken(type, value):TToken {
         return {
             type: type,
             value: value,
@@ -80,7 +87,7 @@ TapDigit.Lexer = function () {
         };
     }
 
-    function skipSpaces() {
+    function skipSpaces():void {
         let ch;
 
         while (index < length) {
@@ -92,7 +99,7 @@ TapDigit.Lexer = function () {
         }
     }
 
-    function scanOperator() {
+    function scanOperator():TToken|undefined {
         let ch = peekNextChar();
         if ('+-*/()^%=;,'.indexOf(ch) >= 0) {
             return createToken(T.Operator, getNextChar());
@@ -100,15 +107,15 @@ TapDigit.Lexer = function () {
         return undefined;
     }
 
-    function isIdentifierStart(ch) {
+    function isIdentifierStart(ch):boolean {
         return (ch === '_') || isLetter(ch);
     }
 
-    function isIdentifierPart(ch) {
+    function isIdentifierPart(ch):boolean {
         return isIdentifierStart(ch) || isDecimalDigit(ch);
     }
 
-    function scanIdentifier() {
+    function scanIdentifier():TToken | undefined {
         let ch, id;
 
         ch = peekNextChar();
@@ -128,7 +135,7 @@ TapDigit.Lexer = function () {
         return createToken(T.Identifier, id);
     }
 
-    function scanNumber() {
+    function scanNumber():TToken | undefined {
         let ch, number;
 
         ch = peekNextChar();
@@ -187,13 +194,13 @@ TapDigit.Lexer = function () {
         return createToken(T.Number, number);
     }
 
-    function reset(str) {
+    function reset(str):void {
         expression = str;
         length = str.length;
         index = 0;
     }
 
-    function next() {
+    function next():TToken | undefined {
         let token;
 
         skipSpaces();
@@ -222,7 +229,7 @@ TapDigit.Lexer = function () {
         throw new SyntaxError('Unknown token from character ' + peekNextChar());
     }
 
-    function peek() {
+    function peek():TToken | undefined {
         let token, idx;
 
         idx = index;
