@@ -616,9 +616,14 @@ TapDigit.Evaluator = function (ctx) {
 
 TapDigit.Editor = function (element) {
 
-    let input, editor, cursor, blinkTimer, lexer, hasFocus;
+    let lexer; // TODO: type this
+    let cursor:HTMLElement;
+    let blinkTimer:number;
+    let editor:HTMLDivElement;
+    let input:HTMLInputElement;
+    let hasFocus:boolean;
 
-    function hideCursor() {
+    function hideCursor():void {
         if (blinkTimer) {
             window.clearInterval(blinkTimer);
         }
@@ -626,7 +631,7 @@ TapDigit.Editor = function (element) {
         cursor.style.visibility = 'hidden';
     }
 
-    function blinkCursor() {
+    function blinkCursor():void {
         let visible = true;
         if (blinkTimer) {
             window.clearInterval(blinkTimer);
@@ -638,7 +643,7 @@ TapDigit.Editor = function (element) {
     }
 
     // Get cursor position from the proxy input and adjust the editor
-    function updateCursor() {
+    function updateCursor():void {
         let start, end, x, y, i, el, cls;
 
         if (typeof cursor === 'undefined') {
@@ -666,12 +671,12 @@ TapDigit.Editor = function (element) {
             y = el.offsetTop;
             cursor.style.left = x + 'px';
             cursor.style.top = y + 'px';
-            cursor.style.opacity = 1;
+            cursor.style.opacity = '1';
         }
 
         // If there is a selection, add the CSS class 'selected'
         // to all nodes inside the selection range.
-        cursor.style.opacity = (start === end) ? 1 : 0;
+        cursor.style.opacity = (start === end) ? '1' : '0';
         for (i = 0; i < editor.childNodes.length; i += 1) {
             el = editor.childNodes[i];
             cls = el.getAttribute('class');
@@ -686,7 +691,7 @@ TapDigit.Editor = function (element) {
     }
 
     // Get a new text from the proxy input and update the syntax highlight
-    function updateEditor() {
+    function updateEditor():void {
         let expr, tokens, token, i, j, text, str, html;
 
         if (typeof lexer === 'undefined') {
@@ -744,7 +749,7 @@ TapDigit.Editor = function (element) {
         }
     }
 
-    function focus() {
+    function focus():void {
         window.setTimeout(function () {
             input.focus();
             blinkCursor();
@@ -752,11 +757,11 @@ TapDigit.Editor = function (element) {
         }, 0);
     }
 
-    function blur() {
+    function blur():void {
         input.blur();
     }
 
-    function deselect() {
+    function deselect():void {
         let el, cls;
         input.selectionEnd = input.selectionStart;
         el = editor.firstChild;
@@ -770,7 +775,7 @@ TapDigit.Editor = function (element) {
         }
     }
 
-    function setHandler(el, event, handler) {
+    function setHandler(el, event, handler):void {
         if (el.addEventListener) {
             el.addEventListener(event, handler, false);
         } else {
@@ -778,7 +783,7 @@ TapDigit.Editor = function (element) {
         }
     }
 
-    function resetHandler(el, event, handler) {
+    function resetHandler(el, event, handler):void {
         if (el.removeEventListener) {
             el.removeEventListener(event, handler, false);
         } else {
@@ -786,24 +791,24 @@ TapDigit.Editor = function (element) {
         }
     }
 
-    function onInputKeyDown(event) {
+    function onInputKeyDown(event):void {
         updateCursor();
     }
 
-    function onInputKeyUp(event) {
+    function onInputKeyUp(event):void {
         updateEditor();
     }
 
-    function onInputBlur() {
+    function onInputBlur():void {
         hasFocus = false;
         hideCursor();
     }
 
-    function onInputFocus() {
+    function onInputFocus():void {
         hasFocus = true;
     }
 
-    function onEditorMouseDown(event) {
+    function onEditorMouseDown(event):void {
         let x, y, i, el, x1, y1, x2, y2, anchor;
 
         deselect();
@@ -872,7 +877,7 @@ TapDigit.Editor = function (element) {
         event.returnValue = false;
     }
 
-    function setupDOM(element) {
+    function setupDOM(element):void {
         let container, wrapper;
 
         // Proxy input where we capture user keyboard interaction
@@ -893,6 +898,7 @@ TapDigit.Editor = function (element) {
         // The "fake" editor
         editor = document.createElement('div');
         editor.setAttribute('class', 'editor');
+        // @ts-ignore TODO: no-such css property "wrap"
         editor.style.wrap = 'on';
         editor.textContent = ' ';
 
