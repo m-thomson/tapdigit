@@ -483,7 +483,7 @@ TapDigit.Context = function () {
         cos: Math.cos,
         exp: Math.exp,
         floor: Math.floor,
-        ln: Math.ln,
+        ln: Math.log,
         random: Math.random,
         sin: Math.sin,
         sqrt: Math.sqrt,
