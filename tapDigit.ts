@@ -71,7 +71,7 @@ export const TapDigit = {
     Number: 'Number'
   },
 
-  Lexer: function () {
+  Lexer() {
     let expression = '',
       length = 0,
       index = 0,
@@ -278,7 +278,7 @@ export const TapDigit = {
     };
   },
 
-  Parser: function () {
+  Parser() {
 
     let lexer = new this.Lexer(),
       T = TapDigit.Token;
@@ -499,7 +499,7 @@ export const TapDigit = {
     };
   },
 
-  Context: function () {
+  Context() {
     let Constants, Functions;
 
     Constants = {
@@ -530,7 +530,7 @@ export const TapDigit = {
     };
   },
 
-  Evaluator: function (ctx) {
+  Evaluator(ctx) {
 
     let parser = new this.Parser(),
       context = (arguments.length < 1) ? new this.Context() : ctx
@@ -614,7 +614,7 @@ export const TapDigit = {
     }
   },
 
-  Editor: function (element) {
+  Editor(element) {
 
     let lexer; // TODO: type this
     let cursor: HTMLElement;
