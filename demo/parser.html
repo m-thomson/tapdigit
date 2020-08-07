@@ -54,8 +54,9 @@ table td {
 
 <p><label for="code">Type a math expression:</label>
     <input type="text" id="code" autocapitalize="off" spellcheck="false"
-           value="x = 6 + 7" onChange='window.updateParserTree()' onKeyDown='window.updateParserTree()'/>
+           value="x = 6 + 7" onChange='window.updateDisplay()' onKeyDown='window.updateDisplay()'/>
 
+<p id="result">&nbsp;</p>
 <p>Syntax tree:</p>
 <pre id="syntax"></pre>
 <p>Tokens:</p>
@@ -64,9 +65,13 @@ table td {
 <p class="footer">Requires ES6 compatible browser</p>
 
 <script type="module">
-    import { updateParserTree } from "./parserTest.js";
-    updateParserTree()
-    window.updateParserTree = updateParserTree
+    import { updateLexerTable, updateParserTree, updateEvalResult } from "./helpers.js";
+    window.updateDisplay = function() {
+        updateEvalResult()
+        updateParserTree()
+        updateLexerTable()
+    }
+    window.updateDisplay()
 </script>
 
 </body>

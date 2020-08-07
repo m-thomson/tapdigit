@@ -27,7 +27,7 @@
 
 import {TapDigit} from "../tapDigit.js";
 
-let evaluator, lexer, evalId;
+let evaluator, evalId;
 
 export function updateEvalResult() {
     if (evalId) {

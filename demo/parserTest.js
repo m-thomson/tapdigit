@@ -42,38 +42,38 @@ export function updateParserTree() {
 
         code = document.getElementById('code').value;
         try {
-            if (typeof lexer === 'undefined') {
-                lexer = TapDigit.Lexer();
-            }
-
+        //     if (typeof lexer === 'undefined') {
+        //         lexer = TapDigit.Lexer();
+        //     }
+        //
             if (typeof parser === 'undefined') {
                 parser = TapDigit.Parser();
             }
-
-            tokens = [];
-            lexer.reset(code);
-            while (true) {
-                token = lexer.next();
-                if (typeof token === 'undefined') {
-                    break;
-                }
-                tokens.push(token);
-            }
-
-            str = '<table width=200>\n';
-            for (i = 0; i < tokens.length; i += 1) {
-                token = tokens[i];
-                str += '<tr>';
-                str += '<td>';
-                str += token.type;
-                str += '</td>';
-                str += '<td align=center>';
-                str += token.value;
-                str += '</td>';
-                str += '</tr>';
-                str += '\n';
-            }
-            document.getElementById('tokens').innerHTML = str;
+        //
+        //     tokens = [];
+        //     lexer.reset(code);
+        //     while (true) {
+        //         token = lexer.next();
+        //         if (typeof token === 'undefined') {
+        //             break;
+        //         }
+        //         tokens.push(token);
+        //     }
+        //
+        //     str = '<table width=200>\n';
+        //     for (i = 0; i < tokens.length; i += 1) {
+        //         token = tokens[i];
+        //         str += '<tr>';
+        //         str += '<td>';
+        //         str += token.type;
+        //         str += '</td>';
+        //         str += '<td align=center>';
+        //         str += token.value;
+        //         str += '</td>';
+        //         str += '</tr>';
+        //         str += '\n';
+        //     }
+        //     document.getElementById('tokens').innerHTML = str;
 
             syntax = parser.parse(code);
 
