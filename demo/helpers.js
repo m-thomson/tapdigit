@@ -31,112 +31,107 @@ import {TapDigit} from "../tapDigit.js";
 let lexerTableId, parserTreeId, evalId, evaluator;
 
 export function updateLexerTable() {
-    if (lexerTableId) {
-        window.clearTimeout(lexerTableId);
+  if (lexerTableId) {
+    window.clearTimeout(lexerTableId);
+  }
+
+  lexerTableId = window.setTimeout(function () {
+    let lexer, token;
+    let code = document.getElementById('code').value;
+    try {
+      if (typeof lexer === 'undefined') {
+        lexer = TapDigit.Lexer();
+      }
+      let tokens = [];
+      lexer.reset(code);
+      while (true) {
+        token = lexer.next();
+        if (typeof token === 'undefined') break;
+        tokens.push(token);
+      }
+      let str = '<table style="width:200px">\n';
+      for (let i = 0; i < tokens.length; i += 1) {
+        token = tokens[i];
+        str += `<tr><td>${token.type}</td>`
+        str += `<td style="text-align: center">${token.value}</td></tr>`;
+      }
+      document.getElementById('tokens').innerHTML = str;
+    } catch (e) {
+      document.getElementById('tokens').innerText = 'error';
     }
-
-    lexerTableId = window.setTimeout(function () {
-        let lexer, token;
-        let code = document.getElementById('code').value;
-        try {
-            if (typeof lexer === 'undefined') {
-                lexer = TapDigit.Lexer();
-            }
-            let tokens = [];
-            lexer.reset(code);
-            while (true) {
-                token = lexer.next();
-                if (typeof token === 'undefined') break;
-                tokens.push(token);
-            }
-
-            let str = '<table style="width:200px">\n';
-            for (let i = 0; i < tokens.length; i += 1) {
-                token = tokens[i];
-                str += '<tr><td>';
-                str += token.type;
-                str += '</td><td style="text-align: center">';
-                str += token.value;
-                str += '</td></tr>\n';
-            }
-            document.getElementById('tokens').innerHTML = str;
-        } catch (e) {
-            document.getElementById('tokens').innerText = 'error';
-        }
-        lexerTableId = undefined;
-    }, 345);
+    lexerTableId = undefined;
+  }, 345);
 }
 
 export function updateParserTree() {
-    if (parserTreeId) {
-        window.clearTimeout(parserTreeId);
-    }
+  if (parserTreeId) {
+    window.clearTimeout(parserTreeId);
+  }
 
-    parserTreeId = window.setTimeout(function () {
-        let parser, syntax;
-        let code = document.getElementById('code').value;
-        try {
-            if (typeof parser === 'undefined') {
-                parser = TapDigit.Parser();
-            }
-            syntax = parser.parse(code);
+  parserTreeId = window.setTimeout(function () {
+    let parser, syntax;
+    let code = document.getElementById('code').value;
+    try {
+      if (typeof parser === 'undefined') {
+        parser = TapDigit.Parser();
+      }
+      syntax = parser.parse(code);
 
-            function stringify(object, key, depth) {
-                let indent = '',
-                    str = '',
-                    value = object[key],
-                    i;
+      function stringify(object, key, depth) {
+        let indent = '',
+          str = '',
+          value = object[key];
 
-                while (indent.length < depth * 3) {
-                    indent += ' ';
-                }
-
-                switch (typeof value) {
-                    case 'string':
-                        str = value;
-                        break;
-                    case 'number':
-                    case 'boolean':
-                    case 'null':
-                        str = String(value);
-                        break;
-                    case 'object':
-                        for (i in value) {
-                            if (value.hasOwnProperty(i)) {
-                                str += ('<br>' + stringify(value, i, depth + 1));
-                            }
-                        }
-                        break;
-                }
-                return indent + ' ' + key + ': ' + str;
-            }
-
-            document.getElementById('syntax').innerHTML = stringify(syntax, 'Expression', 0);
-        } catch (e) {
-            document.getElementById('syntax').innerText = e.message;
+        while (indent.length < depth * 2) {
+          indent += ' ';
         }
-        parserTreeId = undefined;
-    }, 345);
+
+        switch (typeof value) {
+          case 'string':
+            str = value;
+            break;
+          case 'number':
+          case 'boolean':
+          case 'null':
+            str = String(value);
+            break;
+          case 'object':
+            for (let i in value) {
+              if (value.hasOwnProperty(i)) {
+                str += ('<br>' + stringify(value, i, depth + 1));
+              }
+            }
+            break;
+        }
+        return indent + ' ' + key + ': ' + str;
+      }
+
+      document.getElementById('syntax').innerHTML = stringify(syntax, 'Expression', 0);
+    } catch (e) {
+      document.getElementById('syntax').innerText = e.message;
+    }
+    parserTreeId = undefined;
+  }, 345);
 }
 
 
 export function updateEvalResult() {
-    if (evalId) {
-        window.clearTimeout(evalId);
-    }
+  if (evalId) {
+    window.clearTimeout(evalId);
+  }
 
-    evalId = window.setTimeout(function () {
-        let el = document.getElementById('result')
-        let expr = document.getElementById('code').value;
-        try {
-            if (typeof evaluator === 'undefined') {
-                evaluator = TapDigit.Evaluator();
-            }
-            let result = evaluator.evaluate(expr);
-            el.textContent = 'Result: ' + result;
-        } catch (e) {
-            el.textContent = 'Error: ' + e.toString();
-        }
-        evalId = undefined;
-    }, 345);
+  evalId = window.setTimeout(function () {
+    let el = document.getElementById('result')
+    let expr = document.getElementById('code').value;
+    try {
+      if (typeof evaluator === 'undefined') {
+        evaluator = TapDigit.Evaluator();
+      }
+      let result = evaluator.evaluate(expr);
+      el.textContent = 'Result: ' + result;
+    } catch (e) {
+      el.textContent = 'Error: ' + e.toString();
+    }
+    evalId = undefined;
+  }, 345);
 }
