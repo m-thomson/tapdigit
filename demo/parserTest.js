@@ -26,10 +26,11 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/*global TapDigit:true */
+import {TapDigit} from "../tapDigit.js";
+
 let lexer, parseId;
 
-function parse() {
+export function updateParserTree() {
     if (parseId) {
         window.clearTimeout(parseId);
     }
@@ -42,11 +43,11 @@ function parse() {
         code = document.getElementById('code').value;
         try {
             if (typeof lexer === 'undefined') {
-                lexer = new TapDigit.Lexer();
+                lexer = TapDigit.Lexer();
             }
 
             if (typeof parser === 'undefined') {
-                parser = new TapDigit.Parser();
+                parser = TapDigit.Parser();
             }
 
             tokens = [];

@@ -25,10 +25,11 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/*global TapDigit:true */
+import {TapDigit} from "../tapDigit.js";
+
 let evaluator, lexer, evalId;
 
-function parse() {
+export function updateEvalResult() {
     if (evalId) {
         window.clearTimeout(evalId);
     }
@@ -40,9 +41,9 @@ function parse() {
         expr = document.getElementById('code').value;
         try {
             if (typeof evaluator === 'undefined') {
-                evaluator = new TapDigit.Evaluator();
+                evaluator = TapDigit.Evaluator();
             }
-            result = evaluator.evaluate(expr);
+            let result = evaluator.evaluate(expr);
             el.textContent = 'Result: ' + result;
         } catch (e) {
             el.textContent = 'Error: ' + e.toString();

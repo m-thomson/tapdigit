@@ -37,11 +37,8 @@ type TToken = {
   end: number
 }
 
-type TExpression = {
-  Expression: TNode
-}
-
 type TNode = {
+  Expression?: TNode
   Number?: string     // Number literal (as string)
   Identifier?: string // Variable name
   Unary?: {           // An operation on a single item (eg. -5)
@@ -336,7 +333,7 @@ export const TapDigit = {
     //             Number |
     //             '(' Assignment ')' |
     //             FunctionCall
-    function parsePrimary(): TNode | TExpression {
+    function parsePrimary(): TNode {
       let token, expr
 
       token = lexer.peek()
@@ -374,7 +371,7 @@ export const TapDigit = {
 
     // Unary ::= Primary |
     //           '-' Unary
-    function parseUnary(): TNode | TExpression {
+    function parseUnary(): TNode  {
       let token, expr
 
       token = lexer.peek()
@@ -465,7 +462,7 @@ export const TapDigit = {
       return parseAssignment()
     }
 
-    function parse(expression): TExpression {
+    function parse(expression): TNode {
       let expr, token
 
       lexer.reset(expression)
@@ -524,6 +521,10 @@ export const TapDigit = {
 
     function exec(node: TNode): number {
       let left, right, expr, args, i
+
+      if (node.hasOwnProperty('Expression')) {
+        return exec(node.Expression);
+      }
 
       if (node.hasOwnProperty('Number')) {
         return parseFloat(node.Number)

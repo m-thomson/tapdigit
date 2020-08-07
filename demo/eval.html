@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
 <head>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -48,20 +48,19 @@ table td {
 </head>
 <body>
 
-<p>Type a math expression:</p>
+<label for="code">Type a math expression:</label>
 <p><input type="text" id="code" autocapitalize="off" spellcheck="false"
-    value="sin(pi/4) * sqrt(2) + 41" onChange='parse()' onKeyDown='parse()'></input>
+    value="sin(pi/4) * sqrt(2) + 41" onChange='window.updateEvalResult()' onKeyDown='window.updateEvalResult()'/></p>
 
 <p id="result">&nbsp;</p>
 
-<p class="footer">Supported tested browsers: IE&nbsp;7+, Firefox&nbsp;4+,
-Safari&nbsp;5+, Chrome&nbsp;9+, Opera&nbsp;11+, Konqueror&nbsp;4.6+.</p>
+<p class="footer">Requires ES6 compatible browser</p>
 
-<script src="../tapDigit.js" type="text/javascript" charset="utf-8"></script>
-<script src="evalTest.js" type="text/javascript" charset="utf-8"></script>
-<script>parse();</script>
+<script type="module">
+    import {updateEvalResult } from "./evalTest.js";
+    updateEvalResult()
+    window.updateEvalResult = updateEvalResult
+</script>
 
 </body>
-
-
 </html>
