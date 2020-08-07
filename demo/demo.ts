@@ -26,104 +26,103 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import {TapDigit} from "../tapDigit.js";
+import {TapDigit} from "../tapDigit.js"
 
-let lexerTableId:number
-let parserTreeId:number
-let evalId:number
+let lexerTableId: number
+let parserTreeId: number
+let evalId: number
 let evaluator = TapDigit.Evaluator()
-let parser = TapDigit.Parser();
-let lexer = TapDigit.Lexer();
+let parser = TapDigit.Parser()
+let lexer = TapDigit.Lexer()
 
 // noinspection JSUnusedGlobalSymbols
-export function updateLexerTable():void {
+export function updateLexerTable(): void {
   if (lexerTableId) {
-    window.clearTimeout(lexerTableId);
+    window.clearTimeout(lexerTableId)
   }
   lexerTableId = window.setTimeout(function () {
-    let expr = (document.getElementById('code') as HTMLInputElement).value;
+    let expr = (document.getElementById('code') as HTMLInputElement).value
     try {
-      let tokens = [];
-      lexer.reset(expr);
+      let tokens = []
+      lexer.reset(expr)
       while (true) {
-        let token = lexer.next();
-        if (typeof token === 'undefined') break;
-        tokens.push(token);
+        let token = lexer.next()
+        if (typeof token === 'undefined') break
+        tokens.push(token)
       }
-      let str = '<table style="width:200px">\n';
+      let str = '<table style="width:200px">\n'
       for (let i = 0; i < tokens.length; i += 1) {
-        let token = tokens[i];
+        let token = tokens[i]
         str += `<tr><td>${token.type}</td>`
-        str += `<td style="text-align: center">${token.value}</td></tr>`;
+        str += `<td style="text-align: center">${token.value}</td></tr>`
       }
-      document.getElementById('tokens').innerHTML = str;
+      document.getElementById('tokens').innerHTML = str
     } catch (e) {
-      document.getElementById('tokens').innerText = 'error';
+      document.getElementById('tokens').innerText = 'error'
     }
-    lexerTableId = undefined;
-  }, 345);
+    lexerTableId = undefined
+  }, 345)
 }
 
 // noinspection JSUnusedGlobalSymbols
-export function updateParserTree():void {
+export function updateParserTree(): void {
   if (parserTreeId) {
-    window.clearTimeout(parserTreeId);
+    window.clearTimeout(parserTreeId)
   }
   parserTreeId = window.setTimeout(function () {
-    let expr = (document.getElementById('code') as HTMLInputElement).value;
+    let expr = (document.getElementById('code') as HTMLInputElement).value
     try {
-      function stringify(object:object, key:string, depth:number) {
-        let indent = '',
-          str = '',
-          value = object[key];
+      function stringify(object: object, key: string, depth: number) {
+        let indent = '', str = '', value = object[key]
 
         while (indent.length < depth * 2) {
-          indent += ' ';
+          indent += ' '
         }
 
-        let _typeof:string = (value === null) ? 'null' : typeof value
+        let _typeof: string = (value === null) ? 'null' : typeof value
         switch (_typeof) {
           case 'string':
-            str = value;
-            break;
+            str = value
+            break
           case 'number':
           case 'boolean':
           case 'null':
-            str = String(value);
-            break;
+            str = String(value)
+            break
           case 'object':
             for (let i in value) {
               if (value.hasOwnProperty(i)) {
-                str += ('<br>' + stringify(value, i, depth + 1));
+                str += ('<br>' + stringify(value, i, depth + 1))
               }
             }
-            break;
+            break
         }
-        return indent + ' ' + key + ': ' + str;
+        return `${indent} ${key}: ${str}`
       }
-      let syntax = parser.parse(expr);
-      document.getElementById('syntax').innerHTML = stringify(syntax, 'Expression', 0);
+
+      let syntax = parser.parse(expr)
+      document.getElementById('syntax').innerHTML = stringify(syntax, 'Expression', 0)
     } catch (e) {
-      document.getElementById('syntax').innerText = e.message;
+      document.getElementById('syntax').innerText = e.message
     }
-    parserTreeId = undefined;
-  }, 345);
+    parserTreeId = undefined
+  }, 345)
 }
 
 
 // noinspection JSUnusedGlobalSymbols
-export function updateEvalResult():void {
+export function updateEvalResult(): void {
   if (evalId) {
-    window.clearTimeout(evalId);
+    window.clearTimeout(evalId)
   }
   evalId = window.setTimeout(function () {
     let el = document.getElementById('result')
-    let expr = (document.getElementById('code') as HTMLInputElement).value;
+    let expr = (document.getElementById('code') as HTMLInputElement).value
     try {
-      el.textContent = evaluator.evaluate(expr).toString();
+      el.textContent = evaluator.evaluate(expr).toString()
     } catch (e) {
-      el.textContent = 'Error: ' + e.toString();
+      el.textContent = 'Error: ' + e.toString()
     }
-    evalId = undefined;
-  }, 345);
+    evalId = undefined
+  }, 345)
 }

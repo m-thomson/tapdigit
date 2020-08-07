@@ -269,8 +269,8 @@ export const TapDigit = {
 
   Parser() {
 
-    let lexer = this.Lexer(),
-      T = TapDigit.Token
+    let lexer = this.Lexer()
+    let T = TapDigit.Token
 
     function matchOp(token, op): boolean {
       return (typeof token !== 'undefined') &&
@@ -367,7 +367,7 @@ export const TapDigit = {
 
     // Unary ::= Primary |
     //           '-' Unary
-    function parseUnary(): TNode  {
+    function parseUnary(): TNode {
       let token, expr
 
       token = lexer.peek()
@@ -480,14 +480,12 @@ export const TapDigit = {
   },
 
   Context() {
-    let Constants, Functions
-
-    Constants = {
+    let Constants = {
       pi: 3.1415926535897932384,
       phi: 1.6180339887498948482
     }
 
-    Functions = {
+    let Functions = {
       abs: Math.abs,
       acos: Math.acos,
       asin: Math.asin,
@@ -510,16 +508,16 @@ export const TapDigit = {
     }
   },
 
-  Evaluator(ctx?:any) {
+  Evaluator(ctx?: any) {
 
-    let parser = this.Parser(),
-      context = (arguments.length < 1) ? this.Context() : ctx
+    let parser = this.Parser()
+    let context = (arguments.length < 1) ? this.Context() : ctx
 
     function exec(node: TNode): number {
-      let left, right, expr, args, i
+      let expr
 
       if (node.hasOwnProperty('Expression')) {
-        return exec(node.Expression);
+        return exec(node.Expression)
       }
 
       if (node.hasOwnProperty('Number')) {
@@ -528,8 +526,8 @@ export const TapDigit = {
 
       if (node.hasOwnProperty('Binary')) {
         let subNode = node.Binary
-        left = exec(subNode.left)
-        right = exec(subNode.right)
+        let left = exec(subNode.left)
+        let right = exec(subNode.right)
         switch (subNode.operator) {
           case '+':
             return left + right
@@ -568,7 +566,7 @@ export const TapDigit = {
       }
 
       if (node.hasOwnProperty('Assignment')) {
-        right = exec(node.Assignment.value)
+        let right = exec(node.Assignment.value)
         context.Variables[node.Assignment.name.Identifier] = right
         return right
       }
@@ -576,8 +574,8 @@ export const TapDigit = {
       if (node.hasOwnProperty('FunctionCall')) {
         expr = node.FunctionCall
         if (context.Functions.hasOwnProperty(expr.name)) {
-          args = []
-          for (i = 0; i < expr.args.length; i += 1) {
+          let args = []
+          for (let i = 0; i < expr.args.length; i += 1) {
             args.push(exec(expr.args[i]))
           }
           return context.Functions[expr.name].apply(null, args)
@@ -902,6 +900,7 @@ export const TapDigit = {
     setupDOM(element)
     updateEditor()
 
+    // noinspection JSUnusedGlobalSymbols
     return {focus, blur, deselect}
   }
 }
