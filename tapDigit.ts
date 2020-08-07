@@ -76,33 +76,33 @@ export const TapDigit = {
       length = 0,
       index = 0,
       marker = 0,
-      T = TapDigit.Token;
+      T = TapDigit.Token
 
     function peekNextChar(): string {
-      let idx = index;
-      return ((idx < length) ? expression.charAt(idx) : '\x00');
+      let idx = index
+      return ((idx < length) ? expression.charAt(idx) : '\x00')
     }
 
     function getNextChar(): string {
       let ch = '\x00',
-        idx = index;
+        idx = index
       if (idx < length) {
-        ch = expression.charAt(idx);
-        index += 1;
+        ch = expression.charAt(idx)
+        index += 1
       }
-      return ch;
+      return ch
     }
 
     function isWhiteSpace(ch): boolean {
-      return (ch === '\u0009') || (ch === ' ') || (ch === '\u00A0');
+      return (ch === '\u0009') || (ch === ' ') || (ch === '\u00A0')
     }
 
     function isLetter(ch): boolean {
-      return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+      return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
     }
 
     function isDecimalDigit(ch): boolean {
-      return (ch >= '0') && (ch <= '9');
+      return (ch >= '0') && (ch <= '9')
     }
 
     function createToken(type, value): TToken {
@@ -110,225 +110,226 @@ export const TapDigit = {
         type,
         value,
         start: marker,
-        end: index - 1 };
+        end: index - 1
+      }
     }
 
     function skipSpaces(): void {
-      let ch;
+      let ch
 
       while (index < length) {
-        ch = peekNextChar();
+        ch = peekNextChar()
         if (!isWhiteSpace(ch)) {
-          break;
+          break
         }
-        getNextChar();
+        getNextChar()
       }
     }
 
     function scanOperator(): TToken | undefined {
-      let ch = peekNextChar();
+      let ch = peekNextChar()
       if ('+-*/()^%=;,'.indexOf(ch) >= 0) {
-        return createToken(T.Operator, getNextChar());
+        return createToken(T.Operator, getNextChar())
       }
-      return undefined;
+      return undefined
     }
 
     function isIdentifierStart(ch): boolean {
-      return (ch === '_') || isLetter(ch);
+      return (ch === '_') || isLetter(ch)
     }
 
     function isIdentifierPart(ch): boolean {
-      return isIdentifierStart(ch) || isDecimalDigit(ch);
+      return isIdentifierStart(ch) || isDecimalDigit(ch)
     }
 
     function scanIdentifier(): TToken | undefined {
-      let ch, id;
+      let ch, id
 
-      ch = peekNextChar();
+      ch = peekNextChar()
       if (!isIdentifierStart(ch)) {
-        return undefined;
+        return undefined
       }
 
-      id = getNextChar();
+      id = getNextChar()
       while (true) {
-        ch = peekNextChar();
+        ch = peekNextChar()
         if (!isIdentifierPart(ch)) {
-          break;
+          break
         }
-        id += getNextChar();
+        id += getNextChar()
       }
 
-      return createToken(T.Identifier, id);
+      return createToken(T.Identifier, id)
     }
 
     function scanNumber(): TToken | undefined {
-      let ch, number;
+      let ch, number
 
-      ch = peekNextChar();
+      ch = peekNextChar()
       if (!isDecimalDigit(ch) && (ch !== '.')) {
-        return undefined;
+        return undefined
       }
 
-      number = '';
+      number = ''
       if (ch !== '.') {
-        number = getNextChar();
+        number = getNextChar()
         while (true) {
-          ch = peekNextChar();
+          ch = peekNextChar()
           if (!isDecimalDigit(ch)) {
-            break;
+            break
           }
-          number += getNextChar();
+          number += getNextChar()
         }
       }
 
       if (ch === '.') {
-        number += getNextChar();
+        number += getNextChar()
         while (true) {
-          ch = peekNextChar();
+          ch = peekNextChar()
           if (!isDecimalDigit(ch)) {
-            break;
+            break
           }
-          number += getNextChar();
+          number += getNextChar()
         }
       }
 
       if (ch === 'e' || ch === 'E') {
-        number += getNextChar();
-        ch = peekNextChar();
+        number += getNextChar()
+        ch = peekNextChar()
         if (ch === '+' || ch === '-' || isDecimalDigit(ch)) {
-          number += getNextChar();
+          number += getNextChar()
           while (true) {
-            ch = peekNextChar();
+            ch = peekNextChar()
             if (!isDecimalDigit(ch)) {
-              break;
+              break
             }
-            number += getNextChar();
+            number += getNextChar()
           }
         } else {
-          ch = 'character ' + ch;
+          ch = 'character ' + ch
           if (index >= length) {
-            ch = '<end>';
+            ch = '<end>'
           }
-          throw new SyntaxError('Unexpected ' + ch + ' after the exponent sign');
+          throw new SyntaxError('Unexpected ' + ch + ' after the exponent sign')
         }
       }
 
       if (number === '.') {
-        throw new SyntaxError('Expecting decimal digits after the dot sign');
+        throw new SyntaxError('Expecting decimal digits after the dot sign')
       }
 
-      return createToken(T.Number, number);
+      return createToken(T.Number, number)
     }
 
     function reset(str): void {
-      expression = str;
-      length = str.length;
-      index = 0;
+      expression = str
+      length = str.length
+      index = 0
     }
 
     function next(): TToken | undefined {
-      let token;
+      let token
 
-      skipSpaces();
+      skipSpaces()
       if (index >= length) {
-        return undefined;
+        return undefined
       }
 
-      marker = index;
+      marker = index
 
-      token = scanNumber();
+      token = scanNumber()
       if (typeof token !== 'undefined') {
-        return token;
+        return token
       }
 
-      token = scanOperator();
+      token = scanOperator()
       if (typeof token !== 'undefined') {
-        return token;
+        return token
       }
 
-      token = scanIdentifier();
+      token = scanIdentifier()
       if (typeof token !== 'undefined') {
-        return token;
+        return token
       }
 
-      throw new SyntaxError('Unknown token from character ' + peekNextChar());
+      throw new SyntaxError('Unknown token from character ' + peekNextChar())
     }
 
     function peek(): TToken | undefined {
-      let token, idx;
+      let token, idx
 
-      idx = index;
+      idx = index
       try {
-        token = next();
-        delete token.start;
-        delete token.end;
+        token = next()
+        delete token.start
+        delete token.end
       } catch (e) {
-        token = undefined;
+        token = undefined
       }
-      index = idx;
+      index = idx
 
-      return token;
+      return token
     }
 
-    return { reset, next, peek };
+    return {reset, next, peek}
   },
 
   Parser() {
 
-    let lexer = new this.Lexer(),
-      T = TapDigit.Token;
+    let lexer = this.Lexer(),
+      T = TapDigit.Token
 
     function matchOp(token, op): boolean {
       return (typeof token !== 'undefined') &&
         token.type === T.Operator &&
-        token.value === op;
+        token.value === op
     }
 
     // ArgumentList := Expression |
     //                 Expression ',' ArgumentList
     function parseArgumentList(): TNode[] {
-      let token, expr, args = [];
+      let token, expr, args = []
 
       while (true) {
-        expr = parseExpression();
+        expr = parseExpression()
         if (typeof expr === 'undefined') {
           // TODO maybe throw exception?
-          break;
+          break
         }
-        args.push(expr);
-        token = lexer.peek();
+        args.push(expr)
+        token = lexer.peek()
         if (!matchOp(token, ',')) {
-          break;
+          break
         }
-        lexer.next();
+        lexer.next()
       }
 
-      return args;
+      return args
     }
 
     // FunctionCall ::= Identifier '(' ')' ||
     //                  Identifier '(' ArgumentList ')'
     function parseFunctionCall(name): TNode {
-      let token, args = [];
+      let token, args = []
 
-      token = lexer.next();
+      token = lexer.next()
       if (!matchOp(token, '(')) {
-        throw new SyntaxError('Expecting ( in a function call "' + name + '"');
+        throw new SyntaxError('Expecting ( in a function call "' + name + '"')
       }
 
-      token = lexer.peek();
+      token = lexer.peek()
       if (!matchOp(token, ')')) {
-        args = parseArgumentList();
+        args = parseArgumentList()
       }
 
-      token = lexer.next();
+      token = lexer.next()
       if (!matchOp(token, ')')) {
-        throw new SyntaxError('Expecting ) in a function call "' + name + '"');
+        throw new SyntaxError('Expecting ) in a function call "' + name + '"')
       }
 
       return {
-        FunctionCall: { name, args }
-      };
+        FunctionCall: {name, args}
+      }
     }
 
     // Primary ::= Identifier |
@@ -336,162 +337,162 @@ export const TapDigit = {
     //             '(' Assignment ')' |
     //             FunctionCall
     function parsePrimary(): TNode | TExpression {
-      let token, expr;
+      let token, expr
 
-      token = lexer.peek();
+      token = lexer.peek()
 
       if (typeof token === 'undefined') {
-        throw new SyntaxError('Unexpected termination of expression');
+        throw new SyntaxError('Unexpected termination of expression')
       }
 
       if (token.type === T.Identifier) {
-        token = lexer.next();
+        token = lexer.next()
         if (matchOp(lexer.peek(), '(')) {
-          return parseFunctionCall(token.value);
+          return parseFunctionCall(token.value)
         } else {
-          return { Identifier: token.value };
+          return {Identifier: token.value}
         }
       }
 
       if (token.type === T.Number) {
-        token = lexer.next();
-        return { Number: token.value };
+        token = lexer.next()
+        return {Number: token.value}
       }
 
       if (matchOp(token, '(')) {
-        lexer.next();
-        expr = parseAssignment();
-        token = lexer.next();
+        lexer.next()
+        expr = parseAssignment()
+        token = lexer.next()
         if (!matchOp(token, ')')) {
-          throw new SyntaxError('Expecting )');
+          throw new SyntaxError('Expecting )')
         }
-        return { Expression: expr };
+        return {Expression: expr}
       }
 
-      throw new SyntaxError('Parse error, can not process token ' + token.value);
+      throw new SyntaxError('Parse error, can not process token ' + token.value)
     }
 
     // Unary ::= Primary |
     //           '-' Unary
     function parseUnary(): TNode | TExpression {
-      let token, expr;
+      let token, expr
 
-      token = lexer.peek();
+      token = lexer.peek()
       if (matchOp(token, '-') || matchOp(token, '+')) {
-        token = lexer.next();
-        expr = parseUnary();
+        token = lexer.next()
+        expr = parseUnary()
         return {
           Unary: {
             operator: token.value,
             expression: expr
           }
-        };
+        }
       }
 
-      return parsePrimary();
+      return parsePrimary()
     }
 
     // Multiplicative ::= Unary |
     //                    Multiplicative '*' Unary |
     //                    Multiplicative '/' Unary
     function parseMultiplicative(): TNode {
-      let expr, token;
+      let expr, token
 
-      expr = parseUnary();
-      token = lexer.peek();
+      expr = parseUnary()
+      token = lexer.peek()
       while (matchOp(token, '*') || matchOp(token, '/')) {
-        token = lexer.next();
+        token = lexer.next()
         expr = {
           'Binary': {
             operator: token.value,
             left: expr,
             right: parseUnary()
           }
-        };
-        token = lexer.peek();
+        }
+        token = lexer.peek()
       }
-      return expr;
+      return expr
     }
 
     // Additive ::= Multiplicative |
     //              Additive '+' Multiplicative |
     //              Additive '-' Multiplicative
     function parseAdditive(): TNode {
-      let expr, token;
+      let expr, token
 
-      expr = parseMultiplicative();
-      token = lexer.peek();
+      expr = parseMultiplicative()
+      token = lexer.peek()
       while (matchOp(token, '+') || matchOp(token, '-')) {
-        token = lexer.next();
+        token = lexer.next()
         expr = {
           'Binary': {
             operator: token.value,
             left: expr,
             right: parseMultiplicative()
           }
-        };
-        token = lexer.peek();
+        }
+        token = lexer.peek()
       }
-      return expr;
+      return expr
     }
 
     // Assignment ::= Identifier '=' Assignment |
     //                Additive
     function parseAssignment(): TNode {
-      let token, expr;
+      let token, expr
 
-      expr = parseAdditive();
+      expr = parseAdditive()
 
       if (typeof expr !== 'undefined' && expr.Identifier) {
-        token = lexer.peek();
+        token = lexer.peek()
         if (matchOp(token, '=')) {
-          lexer.next();
+          lexer.next()
           return {
             Assignment: {
               name: expr,
               value: parseAssignment()
             }
-          };
+          }
         }
-        return expr;
+        return expr
       }
 
-      return expr;
+      return expr
     }
 
     // Expression ::= Assignment
     function parseExpression(): TNode {
-      return parseAssignment();
+      return parseAssignment()
     }
 
     function parse(expression): TExpression {
-      let expr, token;
+      let expr, token
 
-      lexer.reset(expression);
-      expr = parseExpression();
+      lexer.reset(expression)
+      expr = parseExpression()
 
-      token = lexer.next();
+      token = lexer.next()
       if (typeof token !== 'undefined') {
-        throw new SyntaxError('Unexpected token ' + token.value);
+        throw new SyntaxError('Unexpected token ' + token.value)
       }
 
       return {
         Expression: expr
-      };
+      }
     }
 
     return {
       parse: parse
-    };
+    }
   },
 
   Context() {
-    let Constants, Functions;
+    let Constants, Functions
 
     Constants = {
       pi: 3.1415926535897932384,
       phi: 1.6180339887498948482
-    };
+    }
 
     Functions = {
       abs: Math.abs,
@@ -507,19 +508,19 @@ export const TapDigit = {
       sin: Math.sin,
       sqrt: Math.sqrt,
       tan: Math.tan
-    };
+    }
 
     return {
       Constants,
       Functions,
       Variables: {}
-    };
+    }
   },
 
   Evaluator(ctx) {
 
-    let parser = new this.Parser(),
-      context = (arguments.length < 1) ? new this.Context() : ctx
+    let parser = this.Parser(),
+      context = (arguments.length < 1) ? this.Context() : ctx
 
     function exec(node: TNode): number {
       let left, right, expr, args, i
@@ -595,315 +596,315 @@ export const TapDigit = {
       return exec(tree.Expression)
     }
 
-    return { evaluate }
+    return {evaluate}
   },
 
   Editor(element) {
 
-    let lexer; // TODO: type this
-    let cursor: HTMLElement;
-    let blinkTimer: number;
-    let editor: HTMLDivElement;
-    let input: HTMLInputElement;
-    let hasFocus: boolean;
+    let lexer // TODO: type this
+    let cursor: HTMLElement
+    let blinkTimer: number
+    let editor: HTMLDivElement
+    let input: HTMLInputElement
+    let hasFocus: boolean
 
     function hideCursor(): void {
       if (blinkTimer) {
-        window.clearInterval(blinkTimer);
+        window.clearInterval(blinkTimer)
       }
-      blinkTimer = undefined;
-      cursor.style.visibility = 'hidden';
+      blinkTimer = undefined
+      cursor.style.visibility = 'hidden'
     }
 
     function blinkCursor(): void {
-      let visible = true;
+      let visible = true
       if (blinkTimer) {
-        window.clearInterval(blinkTimer);
+        window.clearInterval(blinkTimer)
       }
       blinkTimer = window.setInterval(function () {
-        cursor.style.visibility = visible ? '' : 'hidden';
-        visible = !visible;
-      }, 423);
+        cursor.style.visibility = visible ? '' : 'hidden'
+        visible = !visible
+      }, 423)
     }
 
     // Get cursor position from the proxy input and adjust the editor
     function updateCursor(): void {
-      let start, end, x, y, i, el, cls;
+      let start, end, x, y, i, el, cls
 
       if (typeof cursor === 'undefined') {
-        return;
+        return
       }
 
       if (cursor.getAttribute('id') !== 'cursor') {
-        return;
+        return
       }
 
-      start = input.selectionStart;
-      end = input.selectionEnd;
+      start = input.selectionStart
+      end = input.selectionEnd
       if (start > end) {
-        end = input.selectionStart;
-        start = input.selectionEnd;
+        end = input.selectionStart
+        start = input.selectionEnd
       }
 
       if (editor.childNodes.length <= start) {
-        return;
+        return
       }
 
-      el = editor.childNodes[start];
+      el = editor.childNodes[start]
       if (el) {
-        x = el.offsetLeft;
-        y = el.offsetTop;
-        cursor.style.left = x + 'px';
-        cursor.style.top = y + 'px';
-        cursor.style.opacity = '1';
+        x = el.offsetLeft
+        y = el.offsetTop
+        cursor.style.left = x + 'px'
+        cursor.style.top = y + 'px'
+        cursor.style.opacity = '1'
       }
 
       // If there is a selection, add the CSS class 'selected'
       // to all nodes inside the selection range.
-      cursor.style.opacity = (start === end) ? '1' : '0';
+      cursor.style.opacity = (start === end) ? '1' : '0'
       for (i = 0; i < editor.childNodes.length; i += 1) {
-        el = editor.childNodes[i];
-        cls = el.getAttribute('class');
+        el = editor.childNodes[i]
+        cls = el.getAttribute('class')
         if (cls !== null) {
-          cls = cls.replace(' selected', '');
+          cls = cls.replace(' selected', '')
           if (i >= start && i < end) {
-            cls += ' selected';
+            cls += ' selected'
           }
-          el.setAttribute('class', cls);
+          el.setAttribute('class', cls)
         }
       }
     }
 
     // Get a new text from the proxy input and update the syntax highlight
     function updateEditor(): void {
-      let expr, tokens, token, i, j, text, str, html;
+      let expr, tokens, token, i, j, text, str, html
 
       if (typeof lexer === 'undefined') {
-        lexer = new this.Lexer();
+        lexer = this.Lexer()
       }
 
-      tokens = [];
+      tokens = []
       try {
-        expr = input.value;
-        lexer.reset(expr);
+        expr = input.value
+        lexer.reset(expr)
         while (true) {
-          token = lexer.next();
+          token = lexer.next()
           if (typeof token === 'undefined') {
-            break;
+            break
           }
-          tokens.push(token);
+          tokens.push(token)
         }
 
-        text = '';
-        html = '';
+        text = ''
+        html = ''
         for (i = 0; i < tokens.length; i += 1) {
-          token = tokens[i];
-          j = 0;
+          token = tokens[i]
+          j = 0
           while (text.length < token.start) {
-            text += ' ';
-            html += '<span class="blank"> </span>';
-            j = 1;
+            text += ' '
+            html += '<span class="blank"> </span>'
+            j = 1
           }
-          str = expr.substring(token.start, token.end + 1);
+          str = expr.substring(token.start, token.end + 1)
           for (j = 0; j < str.length; j += 1) {
-            html += '<span class="' + token.type + '">';
-            html += str.charAt(j);
-            text += str.charAt(j);
-            html += '</span>';
+            html += '<span class="' + token.type + '">'
+            html += str.charAt(j)
+            text += str.charAt(j)
+            html += '</span>'
           }
         }
         while (text.length < expr.length) {
-          text += ' ';
-          html += '<span class="blank"> </span>';
+          text += ' '
+          html += '<span class="blank"> </span>'
         }
       } catch (e) {
         // plain spans for the editor
-        html = '';
+        html = ''
         for (i = 0; i < expr.length; i += 1) {
-          html += '<span class="error">' + expr.charAt(i) + '</span>';
+          html += '<span class="error">' + expr.charAt(i) + '</span>'
         }
       } finally {
-        html += '<span class="cursor" id="cursor">\u00A0</span>';
+        html += '<span class="cursor" id="cursor">\u00A0</span>'
         if (html !== editor.innerHTML) {
-          editor.innerHTML = html;
-          cursor = document.getElementById('cursor');
-          blinkCursor();
-          updateCursor();
+          editor.innerHTML = html
+          cursor = document.getElementById('cursor')
+          blinkCursor()
+          updateCursor()
         }
       }
     }
 
     function focus(): void {
       window.setTimeout(function () {
-        input.focus();
-        blinkCursor();
-        updateCursor();
-      }, 0);
+        input.focus()
+        blinkCursor()
+        updateCursor()
+      }, 0)
     }
 
     function blur(): void {
-      input.blur();
+      input.blur()
     }
 
     function deselect(): void {
-      let el, cls;
-      input.selectionEnd = input.selectionStart;
-      el = editor.firstChild;
+      let el, cls
+      input.selectionEnd = input.selectionStart
+      el = editor.firstChild
       while (el) {
-        cls = el.getAttribute('class');
+        cls = el.getAttribute('class')
         if (cls && cls.match('selected')) {
-          cls = cls.replace('selected', '');
-          el.setAttribute('class', cls);
+          cls = cls.replace('selected', '')
+          el.setAttribute('class', cls)
         }
-        el = el.nextSibling;
+        el = el.nextSibling
       }
     }
 
     function setHandler(el, event, handler): void {
       if (el.addEventListener) {
-        el.addEventListener(event, handler, false);
+        el.addEventListener(event, handler, false)
       } else {
-        el.attachEvent('on' + event, handler);
+        el.attachEvent('on' + event, handler)
       }
     }
 
     function resetHandler(el, event, handler): void {
       if (el.removeEventListener) {
-        el.removeEventListener(event, handler, false);
+        el.removeEventListener(event, handler, false)
       } else {
-        el.detachEvent('on' + event, handler);
+        el.detachEvent('on' + event, handler)
       }
     }
 
     function onInputKeyDown(): void {
-      updateCursor();
+      updateCursor()
     }
 
     function onInputKeyUp(): void {
-      updateEditor();
+      updateEditor()
     }
 
     function onInputBlur(): void {
-      hasFocus = false;
-      hideCursor();
+      hasFocus = false
+      hideCursor()
     }
 
     function onInputFocus(): void {
-      hasFocus = true;
+      hasFocus = true
     }
 
     function onEditorMouseDown(event): void {
-      let x, y, i, el, x1, y1, x2, y2, anchor;
+      let x, y, i, el, x1, y1, x2, y2, anchor
 
-      deselect();
+      deselect()
 
-      x = event.clientX;
-      y = event.clientY;
+      x = event.clientX
+      y = event.clientY
       for (i = 0; i < editor.childNodes.length; i += 1) {
-        el = editor.childNodes[i];
-        x1 = el.offsetLeft;
-        x2 = x1 + el.offsetWidth;
-        y1 = el.offsetTop;
-        y2 = y1 + el.offsetHeight;
+        el = editor.childNodes[i]
+        x1 = el.offsetLeft
+        x2 = x1 + el.offsetWidth
+        y1 = el.offsetTop
+        y2 = y1 + el.offsetHeight
         if (x1 <= x && x < x2 && y1 <= y && y < y2) {
-          input.selectionStart = i;
-          input.selectionEnd = i;
-          anchor = i;
-          blinkCursor();
-          break;
+          input.selectionStart = i
+          input.selectionEnd = i
+          anchor = i
+          blinkCursor()
+          break
         }
       }
 
       // no match, then assume it is at the end
       if (i >= editor.childNodes.length) {
-        input.selectionStart = input.value.length;
-        input.selectionEnd = input.selectionStart;
-        anchor = input.value.length;
+        input.selectionStart = input.value.length
+        input.selectionEnd = input.selectionStart
+        anchor = input.value.length
       }
 
       function onDocumentMouseMove(event) {
-        let i;
+        let i
         if (event.target && event.target.parentNode === editor) {
           for (i = 0; i < editor.childNodes.length; i += 1) {
-            el = editor.childNodes[i];
+            el = editor.childNodes[i]
             if (el === event.target && el !== cursor) {
-              input.selectionStart = Math.min(i, anchor);
-              input.selectionEnd = Math.max(i, anchor);
-              blinkCursor();
-              updateCursor();
-              break;
+              input.selectionStart = Math.min(i, anchor)
+              input.selectionEnd = Math.max(i, anchor)
+              blinkCursor()
+              updateCursor()
+              break
             }
           }
         }
         if (event.preventDefault) {
-          event.preventDefault();
+          event.preventDefault()
         }
-        event.returnValue = false;
+        event.returnValue = false
       }
 
       function onDocumentMouseUp(event) {
         if (event.preventDefault) {
-          event.preventDefault();
+          event.preventDefault()
         }
-        event.returnValue = false;
+        event.returnValue = false
         window.setTimeout(function () {
-          resetHandler(document, 'mousemove', onDocumentMouseMove);
-          resetHandler(document, 'mouseup', onDocumentMouseUp);
-        }, 100);
+          resetHandler(document, 'mousemove', onDocumentMouseMove)
+          resetHandler(document, 'mouseup', onDocumentMouseUp)
+        }, 100)
       }
 
-      focus();
-      setHandler(document, 'mousemove', onDocumentMouseMove);
-      setHandler(document, 'mouseup', onDocumentMouseUp);
+      focus()
+      setHandler(document, 'mousemove', onDocumentMouseMove)
+      setHandler(document, 'mouseup', onDocumentMouseUp)
       if (event.preventDefault) {
-        event.preventDefault();
+        event.preventDefault()
       }
-      event.returnValue = false;
+      event.returnValue = false
     }
 
     function setupDOM(element): void {
-      let container, wrapper;
+      let container, wrapper
 
       // Proxy input where we capture user keyboard interaction
-      input = document.createElement('input');
-      input.style.position = 'absolute';
-      input.style.width = '100px';
-      input.value = 'x = 40 + (6 / 3.0)';
-      input.style.position = 'absolute';
+      input = document.createElement('input')
+      input.style.position = 'absolute'
+      input.style.width = '100px'
+      input.value = 'x = 40 + (6 / 3.0)'
+      input.style.position = 'absolute'
 
       // Container for the above proxy, it also hides the proxy element
-      container = document.createElement('div');
-      container.appendChild(input);
-      container.style.overflow = 'hidden';
-      container.style.width = '1px';
-      container.style.height = '0px';
-      container.style.position = 'relative';
+      container = document.createElement('div')
+      container.appendChild(input)
+      container.style.overflow = 'hidden'
+      container.style.width = '1px'
+      container.style.height = '0px'
+      container.style.position = 'relative'
 
       // The "fake" editor
-      editor = document.createElement('div');
-      editor.setAttribute('class', 'editor');
+      editor = document.createElement('div')
+      editor.setAttribute('class', 'editor')
       // @ts-ignore TODO: no-such css property "wrap"
-      editor.style.wrap = 'on';
-      editor.textContent = ' ';
+      editor.style.wrap = 'on'
+      editor.textContent = ' '
 
       // Top-level wrapper for container
-      wrapper = document.createElement('div');
-      wrapper.appendChild(container);
-      wrapper.appendChild(editor);
-      element.appendChild(wrapper);
+      wrapper = document.createElement('div')
+      wrapper.appendChild(container)
+      wrapper.appendChild(editor)
+      element.appendChild(wrapper)
 
       // Wire all event handlers
-      setHandler(input, 'keydown', onInputKeyDown);
-      setHandler(input, 'keyup', onInputKeyUp);
-      setHandler(input, 'blur', onInputBlur);
-      setHandler(input, 'focus', onInputFocus);
-      setHandler(editor, 'mousedown', onEditorMouseDown);
+      setHandler(input, 'keydown', onInputKeyDown)
+      setHandler(input, 'keyup', onInputKeyUp)
+      setHandler(input, 'blur', onInputBlur)
+      setHandler(input, 'focus', onInputFocus)
+      setHandler(editor, 'mousedown', onEditorMouseDown)
     }
 
-    hasFocus = false;
-    setupDOM(element);
-    updateEditor();
+    hasFocus = false
+    setupDOM(element)
+    updateEditor()
 
-    return { focus, blur, deselect };
+    return {focus, blur, deselect}
   }
 }
