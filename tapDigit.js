@@ -474,7 +474,7 @@ export const TapDigit = {
         return { evaluate };
     },
     Editor(element) {
-        let lexer; // TODO: type this
+        let lexer = TapDigit.Lexer();
         let cursor;
         let blinkTimer;
         let editor;
@@ -540,34 +540,28 @@ export const TapDigit = {
         }
         // Get a new text from the proxy input and update the syntax highlight
         function updateEditor() {
-            let expr, tokens, token, i, j;
-            if (typeof lexer === 'undefined') {
-                lexer = TapDigit.Lexer();
-            }
-            tokens = [];
+            let tokens = [];
             let text = '';
             let html = '';
+            let expr = input.value;
             try {
-                expr = input.value;
                 lexer.reset(expr);
                 while (true) {
-                    token = lexer.next();
+                    let token = lexer.next();
                     if (typeof token === 'undefined') {
                         break;
                     }
                     tokens.push(token);
                 }
-                for (i = 0; i < tokens.length; i += 1) {
-                    token = tokens[i];
-                    j = 0;
+                for (let i = 0; i < tokens.length; i += 1) {
+                    let token = tokens[i];
                     while (text.length < token.start) {
                         text += ' ';
                         html += '<span class="blank"> </span>';
-                        j = 1;
                     }
                     let str = expr.substring(token.start, token.end + 1);
-                    for (j = 0; j < str.length; j += 1) {
-                        html += '<span class="' + token.type + '">';
+                    for (let j = 0; j < str.length; j += 1) {
+                        html += `<span class="${token.type}">`;
                         html += str.charAt(j);
                         text += str.charAt(j);
                         html += '</span>';
@@ -581,7 +575,7 @@ export const TapDigit = {
             catch (e) {
                 // plain spans for the editor
                 html = '';
-                for (i = 0; i < expr.length; i += 1) {
+                for (let i = 0; i < expr.length; i += 1) {
                     html += '<span class="error">' + expr.charAt(i) + '</span>';
                 }
             }
