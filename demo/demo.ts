@@ -28,30 +28,31 @@
 
 import {TapDigit} from "../tapDigit.js";
 
-let lexerTableId, parserTreeId, evalId, evaluator;
+let lexerTableId:number
+let parserTreeId:number
+let evalId:number
+let evaluator = TapDigit.Evaluator()
+let parser = TapDigit.Parser();
+let lexer = TapDigit.Lexer();
 
-export function updateLexerTable() {
+// noinspection JSUnusedGlobalSymbols
+export function updateLexerTable():void {
   if (lexerTableId) {
     window.clearTimeout(lexerTableId);
   }
-
   lexerTableId = window.setTimeout(function () {
-    let lexer, token;
-    let code = document.getElementById('code').value;
+    let expr = (document.getElementById('code') as HTMLInputElement).value;
     try {
-      if (typeof lexer === 'undefined') {
-        lexer = TapDigit.Lexer();
-      }
       let tokens = [];
-      lexer.reset(code);
+      lexer.reset(expr);
       while (true) {
-        token = lexer.next();
+        let token = lexer.next();
         if (typeof token === 'undefined') break;
         tokens.push(token);
       }
       let str = '<table style="width:200px">\n';
       for (let i = 0; i < tokens.length; i += 1) {
-        token = tokens[i];
+        let token = tokens[i];
         str += `<tr><td>${token.type}</td>`
         str += `<td style="text-align: center">${token.value}</td></tr>`;
       }
@@ -63,21 +64,15 @@ export function updateLexerTable() {
   }, 345);
 }
 
-export function updateParserTree() {
+// noinspection JSUnusedGlobalSymbols
+export function updateParserTree():void {
   if (parserTreeId) {
     window.clearTimeout(parserTreeId);
   }
-
   parserTreeId = window.setTimeout(function () {
-    let parser, syntax;
-    let code = document.getElementById('code').value;
+    let expr = (document.getElementById('code') as HTMLInputElement).value;
     try {
-      if (typeof parser === 'undefined') {
-        parser = TapDigit.Parser();
-      }
-      syntax = parser.parse(code);
-
-      function stringify(object, key, depth) {
+      function stringify(object:object, key:string, depth:number) {
         let indent = '',
           str = '',
           value = object[key];
@@ -86,7 +81,8 @@ export function updateParserTree() {
           indent += ' ';
         }
 
-        switch (typeof value) {
+        let _typeof:string = (value === null) ? 'null' : typeof value
+        switch (_typeof) {
           case 'string':
             str = value;
             break;
@@ -105,7 +101,7 @@ export function updateParserTree() {
         }
         return indent + ' ' + key + ': ' + str;
       }
-
+      let syntax = parser.parse(expr);
       document.getElementById('syntax').innerHTML = stringify(syntax, 'Expression', 0);
     } catch (e) {
       document.getElementById('syntax').innerText = e.message;
@@ -115,18 +111,15 @@ export function updateParserTree() {
 }
 
 
-export function updateEvalResult() {
+// noinspection JSUnusedGlobalSymbols
+export function updateEvalResult():void {
   if (evalId) {
     window.clearTimeout(evalId);
   }
-
   evalId = window.setTimeout(function () {
     let el = document.getElementById('result')
-    let expr = document.getElementById('code').value;
+    let expr = (document.getElementById('code') as HTMLInputElement).value;
     try {
-      if (typeof evaluator === 'undefined') {
-        evaluator = TapDigit.Evaluator();
-      }
       el.textContent = evaluator.evaluate(expr).toString();
     } catch (e) {
       el.textContent = 'Error: ' + e.toString();

@@ -1,4 +1,5 @@
-<html>
+<!--suppress CssUnusedSymbol -->
+<html lang="en">
 <head>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -8,9 +9,8 @@
 body {
     background-color: #ddd;
     font-family: 'Helvetica Neue', HelveticaNeue, sans-serif;
-    text-shadow: white 0px 1px 1px;
+    text-shadow: white 0 1px 1px;
 }
-
 #expression {
     background-color: #fff;
     width: 95%;
@@ -23,45 +23,36 @@ body {
     padding: 0.2em 0.3em 0.2em 0.4em;
     white-space: pre-wrap;
 }
-
 span.Number {
     color: green;
 }
-
 span.Identifier {
     color: blue;
 }
-
 span.Operator {
     color: #333;
 }
-
 span.blank {
     color: #555;
 }
-
 span.cursor {
     border-left: 1px solid #333;
     position: absolute;
     opacity: 1;
 }
-
 span.error {
     color: red;
 }
-
 span.selected {
     background-color: Highlight !important;
     color: HighlightText !important;
 }
-
 .footer {
     text-shadow: none;
     font-size: 0.8em;
     color: #888;
     margin-top: 2em;
 }
-
 </style>
 </head>
 <body spellcheck="false">

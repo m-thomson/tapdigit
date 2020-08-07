@@ -510,7 +510,7 @@ export const TapDigit = {
     }
   },
 
-  Evaluator(ctx) {
+  Evaluator(ctx?:any) {
 
     let parser = this.Parser(),
       context = (arguments.length < 1) ? this.Context() : ctx
