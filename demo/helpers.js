@@ -127,8 +127,7 @@ export function updateEvalResult() {
       if (typeof evaluator === 'undefined') {
         evaluator = TapDigit.Evaluator();
       }
-      let result = evaluator.evaluate(expr);
-      el.textContent = 'Result: ' + result;
+      el.textContent = evaluator.evaluate(expr).toString();
     } catch (e) {
       el.textContent = 'Error: ' + e.toString();
     }

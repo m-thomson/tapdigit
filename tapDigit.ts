@@ -678,13 +678,15 @@ export const TapDigit = {
 
     // Get a new text from the proxy input and update the syntax highlight
     function updateEditor(): void {
-      let expr, tokens, token, i, j, text, str, html
+      let expr, tokens, token, i, j
 
       if (typeof lexer === 'undefined') {
-        lexer = this.Lexer()
+        lexer = TapDigit.Lexer()
       }
 
       tokens = []
+      let text = ''
+      let html = ''
       try {
         expr = input.value
         lexer.reset(expr)
@@ -696,8 +698,6 @@ export const TapDigit = {
           tokens.push(token)
         }
 
-        text = ''
-        html = ''
         for (i = 0; i < tokens.length; i += 1) {
           token = tokens[i]
           j = 0
@@ -706,7 +706,7 @@ export const TapDigit = {
             html += '<span class="blank"> </span>'
             j = 1
           }
-          str = expr.substring(token.start, token.end + 1)
+          let str = expr.substring(token.start, token.end + 1)
           for (j = 0; j < str.length; j += 1) {
             html += '<span class="' + token.type + '">'
             html += str.charAt(j)

@@ -67,16 +67,12 @@ span.selected {
 <body spellcheck="false">
 
     <p>Syntax highlighted expression editor:</p>
-
     <div id="expression"></div>
 
-    <p class="footer">Supported tested browsers: Firefox&nbsp;4+,
-    Safari&nbsp;5+, Chrome&nbsp;9+, Opera&nbsp;11+, Konqueror&nbsp;4.6+.</p>
-
-    <script src="../tapDigit.js" type="text/javascript" charset="utf-8"></script>
-    <script>
-        let editor = new TapDigit.Editor(document.getElementById('expression'));
-        editor.focus();
+    <script type="module">
+      import {TapDigit} from "../tapDigit.js";
+      let editor = TapDigit.Editor(document.getElementById('expression'));
+      editor.focus();
     </script>
 
 </body>
