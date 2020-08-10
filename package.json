@@ -5,7 +5,8 @@
   "description": "TapDigit is a simple JavaScript implementation of a math expression lexer, parser, and evaluator.",
   "main": "tapDigit.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -16,5 +17,6 @@
   "bugs": {
     "url": "https://github.com/m-thomson/tapdigit/issues"
   },
-  "homepage": "https://github.com/m-thomson/tapdigit#readme"
+  "homepage": "https://github.com/m-thomson/tapdigit#readme",
+  "files": ["dist/**/*"]
 }
