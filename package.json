@@ -1,0 +1,20 @@
+{
+  "name": "mthomson-tapdigit",
+  "version": "1.0.0",
+  "dependencies": {},
+  "description": "TapDigit is a simple JavaScript implementation of a math expression lexer, parser, and evaluator.",
+  "main": "tapDigit.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/m-thomson/tapdigit.git"
+  },
+  "author": "Mark Thomson",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/m-thomson/tapdigit/issues"
+  },
+  "homepage": "https://github.com/m-thomson/tapdigit#readme"
+}
