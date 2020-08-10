@@ -26,14 +26,14 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import {TapDigit} from "../tapDigit.js"
+import {Evaluator, Parser, Lexer} from "../tapDigit.js"
 
 let lexerTableId: number
 let parserTreeId: number
 let evalId: number
-let evaluator = TapDigit.Evaluator()
-let parser = TapDigit.Parser()
-let lexer = TapDigit.Lexer()
+let evaluator = Evaluator()
+let parser = Parser()
+let lexer = Lexer()
 
 // noinspection JSUnusedGlobalSymbols
 export function updateLexerTable(): void {

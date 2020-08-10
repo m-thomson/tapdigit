@@ -25,13 +25,13 @@
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-import { TapDigit } from "../tapDigit.js";
+import { Evaluator, Parser, Lexer } from "../tapDigit.js";
 let lexerTableId;
 let parserTreeId;
 let evalId;
-let evaluator = TapDigit.Evaluator();
-let parser = TapDigit.Parser();
-let lexer = TapDigit.Lexer();
+let evaluator = Evaluator();
+let parser = Parser();
+let lexer = Lexer();
 // noinspection JSUnusedGlobalSymbols
 export function updateLexerTable() {
     if (lexerTableId) {
