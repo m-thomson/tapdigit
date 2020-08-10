@@ -8,6 +8,10 @@ TapDigit is a simple JavaScript implementation of a math expression [lexer](http
 
 `TapDigit.Evaluator` computes the result of an expression. Variables, constants, and functions supported in the expression syntax can be extended via `TapDigit.Context` object.
 
-There is also a simple web page (open `demo/index.html`) which demonstrates how it works. *This fork* of TapDigit has been migrated to TypeScript/ES6.
+There is also a simple web page (open `demo/index.html`) which demonstrates how it works.
 
-TapDigit was created by [@AriyaHidayat](https://twitter.com/AriyaHidayat) and forked by [@Mark_Thomson](https://twitter.com/mark_thomson). It is distributed under the BSD license.
+#About this fork
+
+* TapDigit was originally created by [@AriyaHidayat](https://twitter.com/AriyaHidayat).
+* This fork of TapDigit has been migrated to TypeScript/ES6.
+* Available under the BSD license.
