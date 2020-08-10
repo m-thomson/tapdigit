@@ -10,8 +10,8 @@ TapDigit is a simple JavaScript implementation of a math expression [lexer](http
 
 There is also a simple web page (open `demo/index.html`) which demonstrates how it works.
 
-#About this fork
+## About this fork
 
 * TapDigit was originally created by [@AriyaHidayat](https://twitter.com/AriyaHidayat).
 * This fork of TapDigit has been migrated to TypeScript/ES6.
-* Available under the BSD license.
+* Available under the BSD 3 Clause License.
