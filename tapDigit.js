@@ -204,8 +204,7 @@ export const TapDigit = {
                 token.type === T.Operator &&
                 token.value === op;
         }
-        // ArgumentList := Expression |
-        //                 Expression ',' ArgumentList
+        // ArgumentList := Expression | Expression ',' ArgumentList
         function parseArgumentList() {
             let token, expr, args = [];
             while (true) {
@@ -223,8 +222,7 @@ export const TapDigit = {
             }
             return args;
         }
-        // FunctionCall ::= Identifier '(' ')' ||
-        //                  Identifier '(' ArgumentList ')'
+        // FunctionCall ::= Identifier '(' ')' || Identifier '(' ArgumentList ')'
         function parseFunctionCall(name) {
             let token, args = [];
             token = lexer.next();
@@ -243,10 +241,7 @@ export const TapDigit = {
                 FunctionCall: { name, args }
             };
         }
-        // Primary ::= Identifier |
-        //             Number |
-        //             '(' Assignment ')' |
-        //             FunctionCall
+        // Primary ::= Identifier | Number | '(' Assignment ')' | FunctionCall
         function parsePrimary() {
             let token, expr;
             token = lexer.peek();

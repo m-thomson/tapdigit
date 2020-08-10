@@ -35,8 +35,8 @@ type TToken = {
 
 type TNode = {
   Expression?: TNode
-  Number?: string     // Number literal (as string)
   Identifier?: string // Variable name
+  Number?: string     // Number literal (as string)
   Unary?: {           // An operation on a single item (eg. -5)
     operator: string
     expression: TNode
@@ -278,8 +278,7 @@ export const TapDigit = {
         token.value === op
     }
 
-    // ArgumentList := Expression |
-    //                 Expression ',' ArgumentList
+    // ArgumentList := Expression | Expression ',' ArgumentList
     function parseArgumentList(): TNode[] {
       let token, expr, args = []
 
@@ -300,8 +299,7 @@ export const TapDigit = {
       return args
     }
 
-    // FunctionCall ::= Identifier '(' ')' ||
-    //                  Identifier '(' ArgumentList ')'
+    // FunctionCall ::= Identifier '(' ')' || Identifier '(' ArgumentList ')'
     function parseFunctionCall(name): TNode {
       let token, args = []
 
@@ -325,10 +323,7 @@ export const TapDigit = {
       }
     }
 
-    // Primary ::= Identifier |
-    //             Number |
-    //             '(' Assignment ')' |
-    //             FunctionCall
+    // Primary ::= Identifier | Number | '(' Assignment ')' | FunctionCall
     function parsePrimary(): TNode {
       let token, expr
 
