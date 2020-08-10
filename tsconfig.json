@@ -7,8 +7,7 @@
     "outDir": "./dist"
   },
   "include": [
-    "**/*.ts",
-    "**/*.js"
+    "src/**/*.ts"
     ],
   "exclude": [
     "node_modules"
