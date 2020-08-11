@@ -61,143 +61,143 @@ const Token = {
   Number: 'Number'
 }
 
-export function Lexer() {
-  let expression = '',
-    length = 0,
-    index = 0,
-    marker = 0,
-    T = Token
+export class Lexer {
+  expression = ''
+  length = 0
+  index = 0
+  marker = 0
+  T = Token
 
-  function peekNextChar(): string {
-    let idx = index
-    return ((idx < length) ? expression.charAt(idx) : '\x00')
+  private peekNextChar(): string {
+    let idx = this.index
+    return ((idx < this.length) ? this.expression.charAt(idx) : '\x00')
   }
 
-  function getNextChar(): string {
+  private getNextChar(): string {
     let ch = '\x00',
-      idx = index
-    if (idx < length) {
-      ch = expression.charAt(idx)
-      index += 1
+      idx = this.index
+    if (idx < this.length) {
+      ch = this.expression.charAt(idx)
+      this.index += 1
     }
     return ch
   }
 
-  function isWhiteSpace(ch:string): boolean {
+  private isWhiteSpace(ch:string): boolean {
     return (ch === '\u0009') || (ch === ' ') || (ch === '\u00A0')
   }
 
-  function isLetter(ch:string): boolean {
+  private isLetter(ch:string): boolean {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
   }
 
-  function isDecimalDigit(ch:string): boolean {
+  private isDecimalDigit(ch:string): boolean {
     return (ch >= '0') && (ch <= '9')
   }
 
-  function createToken(type:string, value:any): TToken {
+  private createToken(type:string, value:any): TToken {
     return {
       type,
       value,
-      start: marker,
-      end: index - 1
+      start: this.marker,
+      end: this.index - 1
     }
   }
 
-  function skipSpaces(): void {
+  private skipSpaces(): void {
     let ch
 
-    while (index < length) {
-      ch = peekNextChar()
-      if (!isWhiteSpace(ch)) {
+    while (this.index < this.length) {
+      ch = this.peekNextChar()
+      if (!this.isWhiteSpace(ch)) {
         break
       }
-      getNextChar()
+      this.getNextChar()
     }
   }
 
-  function scanOperator(): TToken | undefined {
-    let ch = peekNextChar()
+  private scanOperator(): TToken | undefined {
+    let ch = this.peekNextChar()
     if ('+-*/()^%=;,'.indexOf(ch) >= 0) {
-      return createToken(T.Operator, getNextChar())
+      return this.createToken(this.T.Operator, this.getNextChar())
     }
     return undefined
   }
 
-  function isIdentifierStart(ch:string): boolean {
-    return (ch === '_') || isLetter(ch)
+  private isIdentifierStart(ch:string): boolean {
+    return (ch === '_') || this.isLetter(ch)
   }
 
-  function isIdentifierPart(ch:string): boolean {
-    return isIdentifierStart(ch) || isDecimalDigit(ch)
+  private isIdentifierPart(ch:string): boolean {
+    return this.isIdentifierStart(ch) || this.isDecimalDigit(ch)
   }
 
-  function scanIdentifier(): TToken | undefined {
+  private scanIdentifier(): TToken | undefined {
     let ch, id
 
-    ch = peekNextChar()
-    if (!isIdentifierStart(ch)) {
+    ch = this.peekNextChar()
+    if (!this.isIdentifierStart(ch)) {
       return undefined
     }
 
-    id = getNextChar()
+    id = this.getNextChar()
     while (true) {
-      ch = peekNextChar()
-      if (!isIdentifierPart(ch)) {
+      ch = this.peekNextChar()
+      if (!this.isIdentifierPart(ch)) {
         break
       }
-      id += getNextChar()
+      id += this.getNextChar()
     }
 
-    return createToken(T.Identifier, id)
+    return this.createToken(this.T.Identifier, id)
   }
 
-  function scanNumber(): TToken | undefined {
+  private scanNumber(): TToken | undefined {
     let ch, number
 
-    ch = peekNextChar()
-    if (!isDecimalDigit(ch) && (ch !== '.')) {
+    ch = this.peekNextChar()
+    if (!this.isDecimalDigit(ch) && (ch !== '.')) {
       return undefined
     }
 
     number = ''
     if (ch !== '.') {
-      number = getNextChar()
+      number = this.getNextChar()
       while (true) {
-        ch = peekNextChar()
-        if (!isDecimalDigit(ch)) {
+        ch = this.peekNextChar()
+        if (!this.isDecimalDigit(ch)) {
           break
         }
-        number += getNextChar()
+        number += this.getNextChar()
       }
     }
 
     if (ch === '.') {
-      number += getNextChar()
+      number += this.getNextChar()
       while (true) {
-        ch = peekNextChar()
-        if (!isDecimalDigit(ch)) {
+        ch = this.peekNextChar()
+        if (!this.isDecimalDigit(ch)) {
           break
         }
-        number += getNextChar()
+        number += this.getNextChar()
       }
     }
 
     if (ch === 'e' || ch === 'E') {
-      number += getNextChar()
-      ch = peekNextChar()
-      if (ch === '+' || ch === '-' || isDecimalDigit(ch)) {
-        number += getNextChar()
+      number += this.getNextChar()
+      ch = this.peekNextChar()
+      if (ch === '+' || ch === '-' || this.isDecimalDigit(ch)) {
+        number += this.getNextChar()
         while (true) {
-          ch = peekNextChar()
-          if (!isDecimalDigit(ch)) {
+          ch = this.peekNextChar()
+          if (!this.isDecimalDigit(ch)) {
             break
           }
-          number += getNextChar()
+          number += this.getNextChar()
         }
       } else {
         ch = 'character ' + ch
-        if (index >= length) {
+        if (this.index >= this.length) {
           ch = '<end>'
         }
         throw new SyntaxError('Unexpected ' + ch + ' after the exponent sign')
@@ -208,48 +208,48 @@ export function Lexer() {
       throw new SyntaxError('Expecting decimal digits after the dot sign')
     }
 
-    return createToken(T.Number, number)
+    return this.createToken(this.T.Number, number)
   }
 
-  function reset(str:string): void {
-    expression = str
-    length = str.length
-    index = 0
+  public reset(str:string): void {
+    this.expression = str
+    this.length = str.length
+    this.index = 0
   }
 
-  function next(): TToken|undefined {
+  public next(): TToken|undefined {
     let token
 
-    skipSpaces()
-    if (index >= length) {
+    this.skipSpaces()
+    if (this.index >= this.length) {
       return undefined
     }
 
-    marker = index
+    this.marker = this.index
 
-    token = scanNumber()
+    token = this.scanNumber()
     if (typeof token !== 'undefined') {
       return token
     }
 
-    token = scanOperator()
+    token = this.scanOperator()
     if (typeof token !== 'undefined') {
       return token
     }
 
-    token = scanIdentifier()
+    token = this.scanIdentifier()
     if (typeof token !== 'undefined') {
       return token
     }
 
-    throw new SyntaxError('Unknown token from character ' + peekNextChar())
+    throw new SyntaxError('Unknown token from character ' + this.peekNextChar())
   }
 
-  function peek(): TToken | undefined {
+  public peek(): TToken | undefined {
     let token
-    let idx = index
+    let idx = this.index
     try {
-      token = next()
+      token = this.next()
       if (token) {
         delete token.start
         delete token.end
@@ -257,17 +257,15 @@ export function Lexer() {
     } catch (e) {
       token = undefined
     }
-    index = idx
+    this.index = idx
 
     return token
   }
-
-  return {reset, next, peek}
 }
 
 export function Parser() {
 
-  let lexer = Lexer()
+  let lexer = new Lexer()
   let T = Token
 
   function matchOp(token:TToken|undefined, op:any): boolean {
@@ -578,7 +576,7 @@ export function Evaluator(ctx?: any) {
 // noinspection JSUnusedGlobalSymbols
 export function Editor(element:HTMLElement) {
 
-  let lexer = Lexer()
+  let lexer = new Lexer()
   let cursor: HTMLElement
   let blinkTimer: number|undefined
   let editor: HTMLDivElement & Node

@@ -33,7 +33,7 @@ let parserTreeId: number|undefined
 let evalId: number|undefined
 let evaluator = Evaluator()
 let parser = Parser()
-let lexer = Lexer()
+let lexer = new Lexer()
 
 // noinspection JSUnusedGlobalSymbols
 export function updateLexerTable(): void {
