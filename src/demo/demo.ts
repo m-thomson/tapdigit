@@ -32,7 +32,7 @@ let lexerTableId: number|undefined
 let parserTreeId: number|undefined
 let evalId: number|undefined
 let evaluator = Evaluator()
-let parser = Parser()
+let parser = new Parser()
 let lexer = new Lexer()
 
 // noinspection JSUnusedGlobalSymbols

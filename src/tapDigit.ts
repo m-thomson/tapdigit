@@ -263,54 +263,54 @@ export class Lexer {
   }
 }
 
-export function Parser() {
+export class Parser {
 
-  let lexer = new Lexer()
-  let T = Token
+  private lexer = new Lexer()
+  private T = Token
 
-  function matchOp(token:TToken|undefined, op:any): boolean {
+  private matchOp(token:TToken|undefined, op:any): boolean {
     return (typeof token !== 'undefined') &&
-      token.type === T.Operator &&
+      token.type === this.T.Operator &&
       token.value === op
   }
 
   // ArgumentList := Expression | Expression ',' ArgumentList
-  function parseArgumentList(): TNode[] {
+  private parseArgumentList(): TNode[] {
     let args = []
 
     while (true) {
-      let expr = parseExpression()
+      let expr = this.parseExpression()
       if (typeof expr === 'undefined') {
         // TODO maybe throw exception?
         break
       }
       args.push(expr)
-      let peekToken = lexer.peek()
-      if (!matchOp(peekToken, ',')) {
+      let peekToken = this.lexer.peek()
+      if (!this.matchOp(peekToken, ',')) {
         break
       }
-      lexer.next()
+      this.lexer.next()
     }
 
     return args
   }
 
   // FunctionCall ::= Identifier '(' ')' || Identifier '(' ArgumentList ')'
-  function parseFunctionCall(name:string): TNode {
+  private parseFunctionCall(name:string): TNode {
     let args = [] as TNode[]
-    let token = lexer.next()
+    let token = this.lexer.next()
 
-    if (!matchOp(token, '(')) {
+    if (!this.matchOp(token, '(')) {
       throw new SyntaxError('Expecting ( in a function call "' + name + '"')
     }
 
-    let peekToken = lexer.peek()
-    if (!matchOp(peekToken, ')')) {
-      args = parseArgumentList()
+    let peekToken = this.lexer.peek()
+    if (!this.matchOp(peekToken, ')')) {
+      args = this.parseArgumentList()
     }
 
-    token = lexer.next()
-    if (!matchOp(token, ')')) {
+    token = this.lexer.next()
+    if (!this.matchOp(token, ')')) {
       throw new SyntaxError('Expecting ) in a function call "' + name + '"')
     }
 
@@ -320,32 +320,32 @@ export function Parser() {
   }
 
   // Primary ::= Identifier | Number | '(' Assignment ')' | FunctionCall
-  function parsePrimary(): TNode {
-    let peekToken = lexer.peek()
+  private parsePrimary(): TNode {
+    let peekToken = this.lexer.peek()
 
     if (peekToken === undefined) {
       throw new SyntaxError('Unexpected termination of expression')
     }
 
-    if (peekToken.type === T.Identifier) {
-      let token = lexer.next() as TToken
-      if (matchOp(lexer.peek(), '(')) {
-        return parseFunctionCall(token.value)
+    if (peekToken.type === this.T.Identifier) {
+      let token = this.lexer.next() as TToken
+      if (this.matchOp(this.lexer.peek(), '(')) {
+        return this.parseFunctionCall(token.value)
       } else {
         return {Identifier: token.value}
       }
     }
 
-    if (peekToken.type === T.Number) {
-      let token = lexer.next() as TToken
+    if (peekToken.type === this.T.Number) {
+      let token = this.lexer.next() as TToken
       return {Number: token.value}
     }
 
-    if (matchOp(peekToken, '(')) {
-      lexer.next()
-      let expr = parseAssignment()
-      let token = lexer.next() as TToken
-      if (!matchOp(token, ')')) {
+    if (this.matchOp(peekToken, '(')) {
+      this.lexer.next()
+      let expr = this.parseAssignment()
+      let token = this.lexer.next() as TToken
+      if (!this.matchOp(token, ')')) {
         throw new SyntaxError('Expecting )')
       }
       return {Expression: expr}
@@ -354,13 +354,12 @@ export function Parser() {
     throw new SyntaxError('Parse error, can not process token ' + peekToken.value)
   }
 
-  // Unary ::= Primary |
-  //           '-' Unary
-  function parseUnary(): TNode {
-    let peekToken = lexer.peek()
-    if (matchOp(peekToken, '-') || matchOp(peekToken, '+')) {
-      let token = lexer.next() as TToken
-      let expr = parseUnary()
+  // Unary ::= Primary | '-' Unary
+  private parseUnary(): TNode {
+    let peekToken = this.lexer.peek()
+    if (this.matchOp(peekToken, '-') || this.matchOp(peekToken, '+')) {
+      let token = this.lexer.next() as TToken
+      let expr = this.parseUnary()
       return {
         Unary: {
           operator: token.value,
@@ -369,62 +368,57 @@ export function Parser() {
       }
     }
 
-    return parsePrimary()
+    return this.parsePrimary()
   }
 
-  // Multiplicative ::= Unary |
-  //                    Multiplicative '*' Unary |
-  //                    Multiplicative '/' Unary
-  function parseMultiplicative(): TNode {
-    let expr = parseUnary()
-    let peekToken = lexer.peek()
-    while (matchOp(peekToken, '*') || matchOp(peekToken, '/')) {
-      let token = lexer.next() as TToken
+  // Multiplicative ::= Unary | Multiplicative '*' Unary | Multiplicative '/' Unary
+  private parseMultiplicative(): TNode {
+    let expr = this.parseUnary()
+    let peekToken = this.lexer.peek()
+    while (this.matchOp(peekToken, '*') || this.matchOp(peekToken, '/')) {
+      let token = this.lexer.next() as TToken
       expr = {
         'Binary': {
           operator: token.value,
           left: expr,
-          right: parseUnary()
+          right: this.parseUnary()
         }
       }
-      peekToken = lexer.peek()
+      peekToken = this.lexer.peek()
     }
     return expr
   }
 
-  // Additive ::= Multiplicative |
-  //              Additive '+' Multiplicative |
-  //              Additive '-' Multiplicative
-  function parseAdditive(): TNode {
-    let expr = parseMultiplicative()
-    let peekToken = lexer.peek()
-    while (matchOp(peekToken, '+') || matchOp(peekToken, '-')) {
-      let token = lexer.next() as TToken
+  // Additive ::= Multiplicative | Additive '+' Multiplicative | Additive '-' Multiplicative
+  private parseAdditive(): TNode {
+    let expr = this.parseMultiplicative()
+    let peekToken = this.lexer.peek()
+    while (this.matchOp(peekToken, '+') || this.matchOp(peekToken, '-')) {
+      let token = this.lexer.next() as TToken
       expr = {
         'Binary': {
           operator: token.value,
           left: expr,
-          right: parseMultiplicative()
+          right: this.parseMultiplicative()
         }
       }
-      peekToken = lexer.peek()
+      peekToken = this.lexer.peek()
     }
     return expr
   }
 
-  // Assignment ::= Identifier '=' Assignment |
-  //                Additive
-  function parseAssignment(): TNode {
-    let expr = parseAdditive()
+  // Assignment ::= Identifier '=' Assignment | Additive
+  private parseAssignment(): TNode {
+    let expr = this.parseAdditive()
 
     if (expr !== undefined && expr.Identifier) {
-      let peekToken = lexer.peek()
-      if (matchOp(peekToken, '=')) {
-        lexer.next()
+      let peekToken = this.lexer.peek()
+      if (this.matchOp(peekToken, '=')) {
+        this.lexer.next()
         return {
           Assignment: {
             name: { Identifier: expr.Identifier },
-            value: parseAssignment()
+            value: this.parseAssignment()
           }
         }
       }
@@ -435,14 +429,14 @@ export function Parser() {
   }
 
   // Expression ::= Assignment
-  function parseExpression(): TNode {
-    return parseAssignment()
+  private parseExpression(): TNode {
+    return this.parseAssignment()
   }
 
-  function parse(expression:string): Required<Pick<TNode, 'Expression'>> {
-    lexer.reset(expression)
-    let expr = parseExpression()
-    let token = lexer.next()
+  public parse(expression:string): Required<Pick<TNode, 'Expression'>> {
+    this.lexer.reset(expression)
+    let expr = this.parseExpression()
+    let token = this.lexer.next()
 
     if (typeof token !== 'undefined') {
       throw new SyntaxError('Unexpected token ' + token.value)
@@ -451,10 +445,6 @@ export function Parser() {
     return {
       Expression: expr
     }
-  }
-
-  return {
-    parse: parse
   }
 }
 
@@ -489,7 +479,7 @@ function Context() {
 
 export function Evaluator(ctx?: any) {
 
-  let parser = Parser()
+  let parser = new Parser()
   let context = (arguments.length < 1) ? Context() : ctx
 
   function exec(node: TNode): number {
