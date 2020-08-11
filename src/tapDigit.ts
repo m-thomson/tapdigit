@@ -83,19 +83,19 @@ export function Lexer() {
     return ch
   }
 
-  function isWhiteSpace(ch): boolean {
+  function isWhiteSpace(ch:string): boolean {
     return (ch === '\u0009') || (ch === ' ') || (ch === '\u00A0')
   }
 
-  function isLetter(ch): boolean {
+  function isLetter(ch:string): boolean {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
   }
 
-  function isDecimalDigit(ch): boolean {
+  function isDecimalDigit(ch:string): boolean {
     return (ch >= '0') && (ch <= '9')
   }
 
-  function createToken(type, value): TToken {
+  function createToken(type:string, value:any): TToken {
     return {
       type,
       value,
@@ -124,11 +124,11 @@ export function Lexer() {
     return undefined
   }
 
-  function isIdentifierStart(ch): boolean {
+  function isIdentifierStart(ch:string): boolean {
     return (ch === '_') || isLetter(ch)
   }
 
-  function isIdentifierPart(ch): boolean {
+  function isIdentifierPart(ch:string): boolean {
     return isIdentifierStart(ch) || isDecimalDigit(ch)
   }
 
@@ -211,13 +211,13 @@ export function Lexer() {
     return createToken(T.Number, number)
   }
 
-  function reset(str): void {
+  function reset(str:string): void {
     expression = str
     length = str.length
     index = 0
   }
 
-  function next(): TToken | undefined {
+  function next(): TToken|undefined {
     let token
 
     skipSpaces()
@@ -246,13 +246,14 @@ export function Lexer() {
   }
 
   function peek(): TToken | undefined {
-    let token, idx
-
-    idx = index
+    let token
+    let idx = index
     try {
       token = next()
-      delete token.start
-      delete token.end
+      if (token) {
+        delete token.start
+        delete token.end
+      }
     } catch (e) {
       token = undefined
     }
@@ -269,7 +270,7 @@ export function Parser() {
   let lexer = Lexer()
   let T = Token
 
-  function matchOp(token, op): boolean {
+  function matchOp(token:TToken|undefined, op:any): boolean {
     return (typeof token !== 'undefined') &&
       token.type === T.Operator &&
       token.value === op
@@ -277,17 +278,17 @@ export function Parser() {
 
   // ArgumentList := Expression | Expression ',' ArgumentList
   function parseArgumentList(): TNode[] {
-    let token, expr, args = []
+    let args = []
 
     while (true) {
-      expr = parseExpression()
+      let expr = parseExpression()
       if (typeof expr === 'undefined') {
         // TODO maybe throw exception?
         break
       }
       args.push(expr)
-      token = lexer.peek()
-      if (!matchOp(token, ',')) {
+      let peekToken = lexer.peek()
+      if (!matchOp(peekToken, ',')) {
         break
       }
       lexer.next()
@@ -297,16 +298,16 @@ export function Parser() {
   }
 
   // FunctionCall ::= Identifier '(' ')' || Identifier '(' ArgumentList ')'
-  function parseFunctionCall(name): TNode {
-    let token, args = []
+  function parseFunctionCall(name:string): TNode {
+    let args = [] as TNode[]
+    let token = lexer.next()
 
-    token = lexer.next()
     if (!matchOp(token, '(')) {
       throw new SyntaxError('Expecting ( in a function call "' + name + '"')
     }
 
-    token = lexer.peek()
-    if (!matchOp(token, ')')) {
+    let peekToken = lexer.peek()
+    if (!matchOp(peekToken, ')')) {
       args = parseArgumentList()
     }
 
@@ -322,16 +323,14 @@ export function Parser() {
 
   // Primary ::= Identifier | Number | '(' Assignment ')' | FunctionCall
   function parsePrimary(): TNode {
-    let token, expr
+    let peekToken = lexer.peek()
 
-    token = lexer.peek()
-
-    if (typeof token === 'undefined') {
+    if (peekToken === undefined) {
       throw new SyntaxError('Unexpected termination of expression')
     }
 
-    if (token.type === T.Identifier) {
-      token = lexer.next()
+    if (peekToken.type === T.Identifier) {
+      let token = lexer.next() as TToken
       if (matchOp(lexer.peek(), '(')) {
         return parseFunctionCall(token.value)
       } else {
@@ -339,33 +338,31 @@ export function Parser() {
       }
     }
 
-    if (token.type === T.Number) {
-      token = lexer.next()
+    if (peekToken.type === T.Number) {
+      let token = lexer.next() as TToken
       return {Number: token.value}
     }
 
-    if (matchOp(token, '(')) {
+    if (matchOp(peekToken, '(')) {
       lexer.next()
-      expr = parseAssignment()
-      token = lexer.next()
+      let expr = parseAssignment()
+      let token = lexer.next() as TToken
       if (!matchOp(token, ')')) {
         throw new SyntaxError('Expecting )')
       }
       return {Expression: expr}
     }
 
-    throw new SyntaxError('Parse error, can not process token ' + token.value)
+    throw new SyntaxError('Parse error, can not process token ' + peekToken.value)
   }
 
   // Unary ::= Primary |
   //           '-' Unary
   function parseUnary(): TNode {
-    let token, expr
-
-    token = lexer.peek()
-    if (matchOp(token, '-') || matchOp(token, '+')) {
-      token = lexer.next()
-      expr = parseUnary()
+    let peekToken = lexer.peek()
+    if (matchOp(peekToken, '-') || matchOp(peekToken, '+')) {
+      let token = lexer.next() as TToken
+      let expr = parseUnary()
       return {
         Unary: {
           operator: token.value,
@@ -381,12 +378,10 @@ export function Parser() {
   //                    Multiplicative '*' Unary |
   //                    Multiplicative '/' Unary
   function parseMultiplicative(): TNode {
-    let expr, token
-
-    expr = parseUnary()
-    token = lexer.peek()
-    while (matchOp(token, '*') || matchOp(token, '/')) {
-      token = lexer.next()
+    let expr = parseUnary()
+    let peekToken = lexer.peek()
+    while (matchOp(peekToken, '*') || matchOp(peekToken, '/')) {
+      let token = lexer.next() as TToken
       expr = {
         'Binary': {
           operator: token.value,
@@ -394,7 +389,7 @@ export function Parser() {
           right: parseUnary()
         }
       }
-      token = lexer.peek()
+      peekToken = lexer.peek()
     }
     return expr
   }
@@ -403,12 +398,10 @@ export function Parser() {
   //              Additive '+' Multiplicative |
   //              Additive '-' Multiplicative
   function parseAdditive(): TNode {
-    let expr, token
-
-    expr = parseMultiplicative()
-    token = lexer.peek()
-    while (matchOp(token, '+') || matchOp(token, '-')) {
-      token = lexer.next()
+    let expr = parseMultiplicative()
+    let peekToken = lexer.peek()
+    while (matchOp(peekToken, '+') || matchOp(peekToken, '-')) {
+      let token = lexer.next() as TToken
       expr = {
         'Binary': {
           operator: token.value,
@@ -416,7 +409,7 @@ export function Parser() {
           right: parseMultiplicative()
         }
       }
-      token = lexer.peek()
+      peekToken = lexer.peek()
     }
     return expr
   }
@@ -424,17 +417,15 @@ export function Parser() {
   // Assignment ::= Identifier '=' Assignment |
   //                Additive
   function parseAssignment(): TNode {
-    let token, expr
+    let expr = parseAdditive()
 
-    expr = parseAdditive()
-
-    if (typeof expr !== 'undefined' && expr.Identifier) {
-      token = lexer.peek()
-      if (matchOp(token, '=')) {
+    if (expr !== undefined && expr.Identifier) {
+      let peekToken = lexer.peek()
+      if (matchOp(peekToken, '=')) {
         lexer.next()
         return {
           Assignment: {
-            name: expr,
+            name: { Identifier: expr.Identifier },
             value: parseAssignment()
           }
         }
@@ -450,13 +441,11 @@ export function Parser() {
     return parseAssignment()
   }
 
-  function parse(expression): TNode {
-    let expr, token
-
+  function parse(expression:string): Required<Pick<TNode, 'Expression'>> {
     lexer.reset(expression)
-    expr = parseExpression()
+    let expr = parseExpression()
+    let token = lexer.next()
 
-    token = lexer.next()
     if (typeof token !== 'undefined') {
       throw new SyntaxError('Unexpected token ' + token.value)
     }
@@ -508,15 +497,15 @@ export function Evaluator(ctx?: any) {
   function exec(node: TNode): number {
     let expr
 
-    if (node.hasOwnProperty('Expression')) {
+    if (node.Expression !== undefined) {
       return exec(node.Expression)
     }
 
-    if (node.hasOwnProperty('Number')) {
+    if (node.Number !== undefined) {
       return parseFloat(node.Number)
     }
 
-    if (node.hasOwnProperty('Binary')) {
+    if (node.Binary !== undefined) {
       let subNode = node.Binary
       let left = exec(subNode.left)
       let right = exec(subNode.right)
@@ -534,7 +523,7 @@ export function Evaluator(ctx?: any) {
       }
     }
 
-    if (node.hasOwnProperty('Unary')) {
+    if (node.Unary !== undefined) {
       let subNode = node.Unary
       expr = exec(subNode.expression)
       switch (subNode.operator) {
@@ -547,7 +536,7 @@ export function Evaluator(ctx?: any) {
       }
     }
 
-    if (node.hasOwnProperty('Identifier')) {
+    if (node.Identifier !== undefined) {
       if (context.Constants.hasOwnProperty(node.Identifier)) {
         return context.Constants[node.Identifier]
       }
@@ -557,13 +546,13 @@ export function Evaluator(ctx?: any) {
       throw new SyntaxError('Unknown identifier')
     }
 
-    if (node.hasOwnProperty('Assignment')) {
+    if (node.Assignment !== undefined) {
       let right = exec(node.Assignment.value)
       context.Variables[node.Assignment.name.Identifier] = right
       return right
     }
 
-    if (node.hasOwnProperty('FunctionCall')) {
+    if (node.FunctionCall !== undefined) {
       expr = node.FunctionCall
       if (context.Functions.hasOwnProperty(expr.name)) {
         let args = []
@@ -586,12 +575,13 @@ export function Evaluator(ctx?: any) {
   return {evaluate}
 }
 
-export function Editor(element) {
+// noinspection JSUnusedGlobalSymbols
+export function Editor(element:HTMLElement) {
 
   let lexer = Lexer()
   let cursor: HTMLElement
-  let blinkTimer: number
-  let editor: HTMLDivElement
+  let blinkTimer: number|undefined
+  let editor: HTMLDivElement & Node
   let input: HTMLInputElement
   let hasFocus: boolean
 
@@ -616,9 +606,13 @@ export function Editor(element) {
 
   // Get cursor position from the proxy input and adjust the editor
   function updateCursor(): void {
-    let start, end, x, y, i, el, cls
+    let start:number
+    let end:number
+    let x:number
+    let y:number
+    let cls: string|null
 
-    if (typeof cursor === 'undefined') {
+    if (!cursor) {
       return
     }
 
@@ -626,18 +620,18 @@ export function Editor(element) {
       return
     }
 
-    start = input.selectionStart
-    end = input.selectionEnd
+    start = input.selectionStart || 0
+    end = input.selectionEnd || 0
     if (start > end) {
-      end = input.selectionStart
-      start = input.selectionEnd
+      end = input.selectionStart || 0
+      start = input.selectionEnd || 0
     }
 
     if (editor.childNodes.length <= start) {
       return
     }
 
-    el = editor.childNodes[start]
+    let el = editor.childNodes[start] as HTMLElement
     if (el) {
       x = el.offsetLeft
       y = el.offsetTop
@@ -649,8 +643,8 @@ export function Editor(element) {
     // If there is a selection, add the CSS class 'selected'
     // to all nodes inside the selection range.
     cursor.style.opacity = (start === end) ? '1' : '0'
-    for (i = 0; i < editor.childNodes.length; i += 1) {
-      el = editor.childNodes[i]
+    for (let i = 0; i < editor.childNodes.length; i += 1) {
+      el = editor.childNodes[i] as HTMLElement
       cls = el.getAttribute('class')
       if (cls !== null) {
         cls = cls.replace(' selected', '')
@@ -706,7 +700,7 @@ export function Editor(element) {
       html += '<span class="cursor" id="cursor">\u00A0</span>'
       if (html !== editor.innerHTML) {
         editor.innerHTML = html
-        cursor = document.getElementById('cursor')
+        cursor = document.getElementById('cursor') as HTMLElement
         blinkCursor()
         updateCursor()
       }
@@ -726,33 +720,25 @@ export function Editor(element) {
   }
 
   function deselect(): void {
-    let el, cls
+    let cls: string|null
+    let el = editor.firstChild as HTMLElement
     input.selectionEnd = input.selectionStart
-    el = editor.firstChild
     while (el) {
       cls = el.getAttribute('class')
       if (cls && cls.match('selected')) {
         cls = cls.replace('selected', '')
         el.setAttribute('class', cls)
       }
-      el = el.nextSibling
+      el = el.nextSibling as HTMLElement
     }
   }
 
-  function setHandler(el, event, handler): void {
-    if (el.addEventListener) {
-      el.addEventListener(event, handler, false)
-    } else {
-      el.attachEvent('on' + event, handler)
-    }
+  function setHandler(el:Document|HTMLElement, eventName:string, handler:{(...args:any[]):any}): void {
+    el.addEventListener(eventName, handler, false)
   }
 
-  function resetHandler(el, event, handler): void {
-    if (el.removeEventListener) {
-      el.removeEventListener(event, handler, false)
-    } else {
-      el.detachEvent('on' + event, handler)
-    }
+  function resetHandler(el:Document|HTMLElement, eventName:string, handler: {(...args: any[]):any}): void {
+    el.removeEventListener(eventName, handler, false)
   }
 
   function onInputKeyDown(): void {
@@ -772,15 +758,17 @@ export function Editor(element) {
     hasFocus = true
   }
 
-  function onEditorMouseDown(event): void {
-    let x, y, i, el, x1, y1, x2, y2, anchor
+  function onEditorMouseDown(event: MouseEvent): void {
+    let x, y, el, x1, y1, x2, y2
+    let anchor = 0 // ?
 
     deselect()
 
     x = event.clientX
     y = event.clientY
+    let i
     for (i = 0; i < editor.childNodes.length; i += 1) {
-      el = editor.childNodes[i]
+      el = editor.childNodes[i] as HTMLElement
       x1 = el.offsetLeft
       x2 = x1 + el.offsetWidth
       y1 = el.offsetTop
@@ -801,10 +789,9 @@ export function Editor(element) {
       anchor = input.value.length
     }
 
-    function onDocumentMouseMove(event) {
-      let i
-      if (event.target && event.target.parentNode === editor) {
-        for (i = 0; i < editor.childNodes.length; i += 1) {
+    function onDocumentMouseMove(event: MouseEvent) {
+      if (event.target && (event.target as Element).parentNode === editor) {
+        for (let i = 0; i < editor.childNodes.length; i += 1) {
           el = editor.childNodes[i]
           if (el === event.target && el !== cursor) {
             input.selectionStart = Math.min(i, anchor)
@@ -821,7 +808,7 @@ export function Editor(element) {
       event.returnValue = false
     }
 
-    function onDocumentMouseUp(event) {
+    function onDocumentMouseUp(event: MouseEvent) {
       if (event.preventDefault) {
         event.preventDefault()
       }
@@ -841,7 +828,7 @@ export function Editor(element) {
     event.returnValue = false
   }
 
-  function setupDOM(element): void {
+  function setupDOM(element:HTMLElement): void {
     let container, wrapper
 
     // Proxy input where we capture user keyboard interaction

@@ -28,9 +28,9 @@
 
 import {Evaluator, Parser, Lexer} from "../tapDigit.js"
 
-let lexerTableId: number
-let parserTreeId: number
-let evalId: number
+let lexerTableId: number|undefined
+let parserTreeId: number|undefined
+let evalId: number|undefined
 let evaluator = Evaluator()
 let parser = Parser()
 let lexer = Lexer()
@@ -42,6 +42,7 @@ export function updateLexerTable(): void {
   }
   lexerTableId = window.setTimeout(function () {
     let expr = (document.getElementById('code') as HTMLInputElement).value
+    let tokenTableEl = document.getElementById('tokens') as HTMLElement
     try {
       let tokens = []
       lexer.reset(expr)
@@ -56,9 +57,9 @@ export function updateLexerTable(): void {
         str += `<tr><td>${token.type}</td>`
         str += `<td style="text-align: center">${token.value}</td></tr>`
       }
-      document.getElementById('tokens').innerHTML = str
+      tokenTableEl.innerHTML = str
     } catch (e) {
-      document.getElementById('tokens').innerText = 'error'
+      tokenTableEl.innerText = 'error'
     }
     lexerTableId = undefined
   }, 345)
@@ -71,8 +72,9 @@ export function updateParserTree(): void {
   }
   parserTreeId = window.setTimeout(function () {
     let expr = (document.getElementById('code') as HTMLInputElement).value
+    let syntaxPreEl = document.getElementById('syntax') as HTMLElement
     try {
-      function stringify(object: object, key: string, depth: number) {
+      function stringify(object: {[x:string]:any}, key: string, depth: number) {
         let indent = '', str = '', value = object[key]
 
         while (indent.length < depth * 2) {
@@ -101,9 +103,9 @@ export function updateParserTree(): void {
       }
 
       let syntax = parser.parse(expr)
-      document.getElementById('syntax').innerHTML = stringify(syntax, 'Expression', 0)
+      syntaxPreEl.innerHTML = stringify(syntax, 'Expression', 0)
     } catch (e) {
-      document.getElementById('syntax').innerText = e.message
+      syntaxPreEl.innerText = e.message
     }
     parserTreeId = undefined
   }, 345)
@@ -116,8 +118,8 @@ export function updateEvalResult(): void {
     window.clearTimeout(evalId)
   }
   evalId = window.setTimeout(function () {
-    let el = document.getElementById('result')
     let expr = (document.getElementById('code') as HTMLInputElement).value
+    let el = document.getElementById('result') as HTMLElement
     try {
       el.textContent = evaluator.evaluate(expr).toString()
     } catch (e) {
