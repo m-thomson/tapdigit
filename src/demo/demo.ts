@@ -31,7 +31,7 @@ import {Evaluator, Parser, Lexer} from "../tapDigit.js"
 let lexerTableId: number|undefined
 let parserTreeId: number|undefined
 let evalId: number|undefined
-let evaluator = Evaluator()
+let evaluator = new Evaluator()
 let parser = new Parser()
 let lexer = new Lexer()
 

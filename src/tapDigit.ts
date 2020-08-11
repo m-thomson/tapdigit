@@ -477,16 +477,20 @@ function Context() {
   }
 }
 
-export function Evaluator(ctx?: any) {
+export class Evaluator {
 
-  let parser = new Parser()
-  let context = (arguments.length < 1) ? Context() : ctx
+  context:any
+  parser = new Parser()
 
-  function exec(node: TNode): number {
+  constructor(ctx?: any) {
+    this.context = (arguments.length < 1) ? Context() : ctx
+  }
+
+  private exec(node: TNode): number {
     let expr
 
     if (node.Expression !== undefined) {
-      return exec(node.Expression)
+      return this.exec(node.Expression)
     }
 
     if (node.Number !== undefined) {
@@ -495,8 +499,8 @@ export function Evaluator(ctx?: any) {
 
     if (node.Binary !== undefined) {
       let subNode = node.Binary
-      let left = exec(subNode.left)
-      let right = exec(subNode.right)
+      let left = this.exec(subNode.left)
+      let right = this.exec(subNode.right)
       switch (subNode.operator) {
         case '+':
           return left + right
@@ -513,7 +517,7 @@ export function Evaluator(ctx?: any) {
 
     if (node.Unary !== undefined) {
       let subNode = node.Unary
-      expr = exec(subNode.expression)
+      expr = this.exec(subNode.expression)
       switch (subNode.operator) {
         case '+':
           return expr
@@ -525,29 +529,29 @@ export function Evaluator(ctx?: any) {
     }
 
     if (node.Identifier !== undefined) {
-      if (context.Constants.hasOwnProperty(node.Identifier)) {
-        return context.Constants[node.Identifier]
+      if (this.context.Constants.hasOwnProperty(node.Identifier)) {
+        return this.context.Constants[node.Identifier]
       }
-      if (context.Variables.hasOwnProperty(node.Identifier)) {
-        return context.Variables[node.Identifier]
+      if (this.context.Variables.hasOwnProperty(node.Identifier)) {
+        return this.context.Variables[node.Identifier]
       }
       throw new SyntaxError('Unknown identifier')
     }
 
     if (node.Assignment !== undefined) {
-      let right = exec(node.Assignment.value)
-      context.Variables[node.Assignment.name.Identifier] = right
+      let right = this.exec(node.Assignment.value)
+      this.context.Variables[node.Assignment.name.Identifier] = right
       return right
     }
 
     if (node.FunctionCall !== undefined) {
       expr = node.FunctionCall
-      if (context.Functions.hasOwnProperty(expr.name)) {
+      if (this.context.Functions.hasOwnProperty(expr.name)) {
         let args = []
         for (let i = 0; i < expr.args.length; i += 1) {
-          args.push(exec(expr.args[i]))
+          args.push(this.exec(expr.args[i]))
         }
-        return context.Functions[expr.name].apply(null, args)
+        return this.context.Functions[expr.name].apply(null, args)
       }
       throw new SyntaxError('Unknown function ' + expr.name)
     }
@@ -555,12 +559,12 @@ export function Evaluator(ctx?: any) {
     throw new SyntaxError('Unknown syntax node')
   }
 
-  function evaluate(expr: string): number {
-    let tree = parser.parse(expr)
-    return exec(tree.Expression)
+  public evaluate(expr: string): number {
+    let tree = this.parser.parse(expr)
+    return this.exec(tree.Expression)
   }
 
-  return {evaluate}
+  // return {evaluate}
 }
 
 // noinspection JSUnusedGlobalSymbols
