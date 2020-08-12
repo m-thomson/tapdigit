@@ -55,6 +55,40 @@ type TNode = {
     args: TNode[]
   }
 }
+
+type TFuncDef = [Function, number]
+
+type TContext = {
+  Constants: { [x: string]: number }
+  Functions: { [x: string]: TFuncDef }
+  Variables: { [x: string]: number }
+}
+
+function Context(): TContext {
+  return {
+    Constants: {
+      pi: 3.1415926535897932384,
+      phi: 1.6180339887498948482
+    },
+    Functions: {
+      abs: [Math.abs, 1],
+      acos: [Math.acos, 1],
+      asin: [Math.asin, 1],
+      atan: [Math.atan, 1],
+      ceil: [Math.ceil, 1],
+      cos: [Math.cos, 1],
+      exp: [Math.exp, 1],
+      floor: [Math.floor, 1],
+      ln: [Math.log, 1],
+      random: [Math.random, 1],
+      sin: [Math.sin, 1],
+      sqrt: [Math.sqrt, 1],
+      tan: [Math.tan, 1],
+    },
+    Variables: {},
+  }
+}
+
 const Token = {
   Operator: 'Operator',
   Identifier: 'Identifier',
@@ -257,11 +291,19 @@ export class Lexer {
 export class Parser {
 
   private lexer = new Lexer()
+  private context: TContext
 
-  private matchOp(token:TToken|undefined, op:any): boolean {
+  constructor(ctx?:TContext) {
+    this.context = ctx ? ctx : Context()
+  }
+
+  /**
+   * Returns true if the given token in an operator token with the given value
+   */
+  private matchOp(token:TToken|undefined, value:any): boolean {
     return (typeof token !== 'undefined') &&
       token.type === Token.Operator &&
-      token.value === op
+      token.value === value
   }
 
   // ArgumentList := Expression | Expression ',' ArgumentList
@@ -297,6 +339,9 @@ export class Parser {
     let peekToken = this.lexer.peek()
     if (!this.matchOp(peekToken, ')')) {
       args = this.parseArgumentList()
+    }
+    if (args.length !== this.context.Functions[name][1]) {
+      console.warn(`Function ${name}() expects ${this.context.Functions[name][1]} argument(s), found ${args.length}`)
     }
 
     token = this.lexer.next()
@@ -438,42 +483,13 @@ export class Parser {
   }
 }
 
-function Context() {
-  let Constants = {
-    pi: 3.1415926535897932384,
-    phi: 1.6180339887498948482
-  }
-
-  let Functions = {
-    abs: Math.abs,
-    acos: Math.acos,
-    asin: Math.asin,
-    atan: Math.atan,
-    ceil: Math.ceil,
-    cos: Math.cos,
-    exp: Math.exp,
-    floor: Math.floor,
-    ln: Math.log,
-    random: Math.random,
-    sin: Math.sin,
-    sqrt: Math.sqrt,
-    tan: Math.tan
-  }
-
-  return {
-    Constants,
-    Functions,
-    Variables: {}
-  }
-}
-
 export class Evaluator {
 
-  context:any
+  context:TContext
   parser = new Parser()
 
-  constructor(ctx?: any) {
-    this.context = (arguments.length < 1) ? Context() : ctx
+  constructor(ctx?: TContext) {
+    this.context = ctx || Context()
   }
 
   private exec(node: TNode): number {
@@ -541,7 +557,7 @@ export class Evaluator {
         for (let i = 0; i < expr.args.length; i += 1) {
           args.push(this.exec(expr.args[i]))
         }
-        return this.context.Functions[expr.name].apply(null, args)
+        return this.context.Functions[expr.name][0].apply(null, args)
       }
       throw new SyntaxError('Unknown function ' + expr.name)
     }
@@ -739,20 +755,18 @@ export function Editor(element:HTMLElement) {
   }
 
   function onEditorMouseDown(event: MouseEvent): void {
-    let x, y, el, x1, y1, x2, y2
-    let anchor = 0 // ?
-
+    let anchor = 0
+    let i
+    let x = event.clientX
+    let y = event.clientY
     deselect()
 
-    x = event.clientX
-    y = event.clientY
-    let i
     for (i = 0; i < editor.childNodes.length; i += 1) {
-      el = editor.childNodes[i] as HTMLElement
-      x1 = el.offsetLeft
-      x2 = x1 + el.offsetWidth
-      y1 = el.offsetTop
-      y2 = y1 + el.offsetHeight
+      let el = editor.childNodes[i] as HTMLElement
+      let x1 = el.offsetLeft
+      let x2 = x1 + el.offsetWidth
+      let y1 = el.offsetTop
+      let y2 = y1 + el.offsetHeight
       if (x1 <= x && x < x2 && y1 <= y && y < y2) {
         input.selectionStart = i
         input.selectionEnd = i
@@ -772,7 +786,7 @@ export function Editor(element:HTMLElement) {
     function onDocumentMouseMove(event: MouseEvent) {
       if (event.target && (event.target as Element).parentNode === editor) {
         for (let i = 0; i < editor.childNodes.length; i += 1) {
-          el = editor.childNodes[i]
+          let el = editor.childNodes[i]
           if (el === event.target && el !== cursor) {
             input.selectionStart = Math.min(i, anchor)
             input.selectionEnd = Math.max(i, anchor)
