@@ -101,6 +101,56 @@ export class Lexer {
   index = 0
   marker = 0
 
+  public reset(str: string): void {
+    this.expression = str
+    this.length = str.length
+    this.index = 0
+  }
+
+  public next(): TToken | undefined {
+
+    this.skipSpaces()
+    if (this.index >= this.length) {
+      return undefined
+    }
+
+    this.marker = this.index
+
+    let token = this.scanNumber()
+    if (typeof token !== 'undefined') {
+      return token
+    }
+
+    token = this.scanOperator()
+    if (typeof token !== 'undefined') {
+      return token
+    }
+
+    token = this.scanIdentifier()
+    if (typeof token !== 'undefined') {
+      return token
+    }
+
+    throw new SyntaxError('Unknown token from character ' + this.peekNextChar())
+  }
+
+  public peek(): TToken | undefined {
+    let token
+    let idx = this.index
+    try {
+      token = this.next()
+      if (token) {
+        delete token.start
+        delete token.end
+      }
+    } catch (e) {
+      token = undefined
+    }
+    this.index = idx
+
+    return token
+  }
+
   private peekNextChar(): string {
     let idx = this.index
     return ((idx < this.length) ? this.expression.charAt(idx) : '\x00')
@@ -236,56 +286,6 @@ export class Lexer {
 
     return this.createToken(LexerTokens.number, number)
   }
-
-  public reset(str:string): void {
-    this.expression = str
-    this.length = str.length
-    this.index = 0
-  }
-
-  public next(): TToken|undefined {
-
-    this.skipSpaces()
-    if (this.index >= this.length) {
-      return undefined
-    }
-
-    this.marker = this.index
-
-    let token = this.scanNumber()
-    if (typeof token !== 'undefined') {
-      return token
-    }
-
-    token = this.scanOperator()
-    if (typeof token !== 'undefined') {
-      return token
-    }
-
-    token = this.scanIdentifier()
-    if (typeof token !== 'undefined') {
-      return token
-    }
-
-    throw new SyntaxError('Unknown token from character ' + this.peekNextChar())
-  }
-
-  public peek(): TToken | undefined {
-    let token
-    let idx = this.index
-    try {
-      token = this.next()
-      if (token) {
-        delete token.start
-        delete token.end
-      }
-    } catch (e) {
-      token = undefined
-    }
-    this.index = idx
-
-    return token
-  }
 }
 
 export class Parser {
@@ -295,6 +295,20 @@ export class Parser {
 
   constructor(ctx?:TContext) {
     this.context = ctx ? ctx : Context()
+  }
+
+  public parse(expression: string): Required<Pick<TNode, 'Expression'>> {
+    this.lexer.reset(expression)
+    let expr = this.parseExpression()
+    let token = this.lexer.next()
+
+    if (typeof token !== 'undefined') {
+      throw new SyntaxError('Unexpected token ' + token.value)
+    }
+
+    return {
+      Expression: expr
+    }
   }
 
   /**
@@ -465,20 +479,6 @@ export class Parser {
   private parseExpression(): TNode {
     return this.parseAssignment()
   }
-
-  public parse(expression:string): Required<Pick<TNode, 'Expression'>> {
-    this.lexer.reset(expression)
-    let expr = this.parseExpression()
-    let token = this.lexer.next()
-
-    if (typeof token !== 'undefined') {
-      throw new SyntaxError('Unexpected token ' + token.value)
-    }
-
-    return {
-      Expression: expr
-    }
-  }
 }
 
 export class Evaluator {
@@ -488,6 +488,11 @@ export class Evaluator {
 
   constructor(ctx?: TContext) {
     this.context = ctx || Context()
+  }
+
+  public evaluate(expr: string): number {
+    let tree = this.parser.parse(expr)
+    return this.exec(tree.Expression)
   }
 
   private exec(node: TNode): number {
@@ -561,10 +566,5 @@ export class Evaluator {
     }
 
     throw new SyntaxError('Unknown syntax node')
-  }
-
-  public evaluate(expr: string): number {
-    let tree = this.parser.parse(expr)
-    return this.exec(tree.Expression)
   }
 }
