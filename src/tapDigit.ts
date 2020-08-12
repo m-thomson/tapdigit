@@ -151,6 +151,15 @@ export class Lexer {
     return token
   }
 
+  private createToken(type: string, value: any): TToken {
+    return {
+      type,
+      value,
+      start: this.marker,
+      end: this.index - 1
+    }
+  }
+
   private peekNextChar(): string {
     let idx = this.index
     return ((idx < this.length) ? this.expression.charAt(idx) : '\x00')
@@ -164,27 +173,6 @@ export class Lexer {
       this.index += 1
     }
     return ch
-  }
-
-  private isWhiteSpace(ch:string): boolean {
-    return (ch === '\u0009') || (ch === ' ') || (ch === '\u00A0')
-  }
-
-  private isLetter(ch:string): boolean {
-    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
-  }
-
-  private isDecimalDigit(ch:string): boolean {
-    return (ch >= '0') && (ch <= '9')
-  }
-
-  private createToken(type:string, value:any): TToken {
-    return {
-      type,
-      value,
-      start: this.marker,
-      end: this.index - 1
-    }
   }
 
   private skipSpaces(): void {
@@ -203,14 +191,6 @@ export class Lexer {
       return this.createToken(LexerTokens.operator, this.getNextChar())
     }
     return undefined
-  }
-
-  private isIdentifierStart(ch:string): boolean {
-    return (ch === '_') || this.isLetter(ch)
-  }
-
-  private isIdentifierPart(ch:string): boolean {
-    return this.isIdentifierStart(ch) || this.isDecimalDigit(ch)
   }
 
   private scanIdentifier(): TToken | undefined {
@@ -286,6 +266,26 @@ export class Lexer {
 
     return this.createToken(LexerTokens.number, number)
   }
+
+  private isDecimalDigit(ch: string): boolean {
+    return (ch >= '0') && (ch <= '9')
+  }
+
+  private isWhiteSpace(ch: string): boolean {
+    return (ch === '\u0009') || (ch === ' ') || (ch === '\u00A0')
+  }
+
+  private isLetter(ch: string): boolean {
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
+  }
+
+  private isIdentifierStart(ch: string): boolean {
+    return (ch === '_') || this.isLetter(ch)
+  }
+
+  private isIdentifierPart(ch: string): boolean {
+    return this.isIdentifierStart(ch) || this.isDecimalDigit(ch)
+  }
 }
 
 export class Parser {
@@ -311,15 +311,6 @@ export class Parser {
     }
   }
 
-  /**
-   * Returns true if argument is an operator token with the given value
-   */
-  private matchOp(token:TToken|undefined, value:any): boolean {
-    return token !== undefined &&
-      token.type === LexerTokens.operator &&
-      token.value === value
-  }
-
   // ArgumentList := Expression | Expression ',' ArgumentList
   private parseArgumentList(): TNode[] {
     let args = []
@@ -332,7 +323,7 @@ export class Parser {
       }
       args.push(expr)
       let peekToken = this.lexer.peek()
-      if (!this.matchOp(peekToken, ',')) {
+      if (!this.isOpToken(peekToken, ',')) {
         break
       }
       this.lexer.next()
@@ -346,12 +337,12 @@ export class Parser {
     let args = [] as TNode[]
     let token = this.lexer.next()
 
-    if (!this.matchOp(token, '(')) {
+    if (!this.isOpToken(token, '(')) {
       throw new SyntaxError('Expecting ( in a function call "' + name + '"')
     }
 
     let peekToken = this.lexer.peek()
-    if (!this.matchOp(peekToken, ')')) {
+    if (!this.isOpToken(peekToken, ')')) {
       args = this.parseArgumentList()
     }
     if (args.length !== this.context.Functions[name][1]) {
@@ -359,7 +350,7 @@ export class Parser {
     }
 
     token = this.lexer.next()
-    if (!this.matchOp(token, ')')) {
+    if (!this.isOpToken(token, ')')) {
       throw new SyntaxError('Expecting ) in a function call "' + name + '"')
     }
 
@@ -378,7 +369,7 @@ export class Parser {
 
     if (peekToken.type === LexerTokens.identifier) {
       let token = this.lexer.next() as TToken
-      if (this.matchOp(this.lexer.peek(), '(')) {
+      if (this.isOpToken(this.lexer.peek(), '(')) {
         return this.parseFunctionCall(token.value)
       } else {
         return {Identifier: token.value}
@@ -390,11 +381,11 @@ export class Parser {
       return {Number: token.value}
     }
 
-    if (this.matchOp(peekToken, '(')) {
+    if (this.isOpToken(peekToken, '(')) {
       this.lexer.next()
       let expr = this.parseAssignment()
       let token = this.lexer.next() as TToken
-      if (!this.matchOp(token, ')')) {
+      if (!this.isOpToken(token, ')')) {
         throw new SyntaxError('Expecting )')
       }
       return {Expression: expr}
@@ -406,7 +397,7 @@ export class Parser {
   // Unary ::= Primary | '-' Unary
   private parseUnary(): TNode {
     let peekToken = this.lexer.peek()
-    if (this.matchOp(peekToken, '-') || this.matchOp(peekToken, '+')) {
+    if (this.isOpToken(peekToken, '-') || this.isOpToken(peekToken, '+')) {
       let token = this.lexer.next() as TToken
       let expr = this.parseUnary()
       return {
@@ -424,7 +415,7 @@ export class Parser {
   private parseMultiplicative(): TNode {
     let expr = this.parseUnary()
     let peekToken = this.lexer.peek()
-    while (this.matchOp(peekToken, '*') || this.matchOp(peekToken, '/')) {
+    while (this.isOpToken(peekToken, '*') || this.isOpToken(peekToken, '/')) {
       let token = this.lexer.next() as TToken
       expr = {
         'Binary': {
@@ -442,7 +433,7 @@ export class Parser {
   private parseAdditive(): TNode {
     let expr = this.parseMultiplicative()
     let peekToken = this.lexer.peek()
-    while (this.matchOp(peekToken, '+') || this.matchOp(peekToken, '-')) {
+    while (this.isOpToken(peekToken, '+') || this.isOpToken(peekToken, '-')) {
       let token = this.lexer.next() as TToken
       expr = {
         'Binary': {
@@ -461,7 +452,7 @@ export class Parser {
     let expr = this.parseAdditive()
     if (expr !== undefined && expr.Identifier) {
       let peekToken = this.lexer.peek()
-      if (this.matchOp(peekToken, '=')) {
+      if (this.isOpToken(peekToken, '=')) {
         this.lexer.next()
         return {
           Assignment: {
@@ -478,6 +469,15 @@ export class Parser {
   // Expression ::= Assignment
   private parseExpression(): TNode {
     return this.parseAssignment()
+  }
+
+  /**
+   * Returns true if argument is an operator token with the given value
+   */
+  private isOpToken(token: TToken | undefined, value: any): boolean {
+    return token !== undefined &&
+      token.type === LexerTokens.operator &&
+      token.value === value
   }
 }
 
