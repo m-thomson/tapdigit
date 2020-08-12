@@ -89,10 +89,10 @@ function Context(): TContext {
   }
 }
 
-const Token = {
-  Operator: 'Operator',
-  Identifier: 'Identifier',
-  Number: 'Number'
+const LexerTokens = {
+  operator: 'Operator',
+  identifier: 'Identifier',
+  number: 'Number'
 }
 
 export class Lexer {
@@ -150,7 +150,7 @@ export class Lexer {
   private scanOperator(): TToken | undefined {
     let ch = this.peekNextChar()
     if ('+-*/()^%=;,'.indexOf(ch) >= 0) {
-      return this.createToken(Token.Operator, this.getNextChar())
+      return this.createToken(LexerTokens.operator, this.getNextChar())
     }
     return undefined
   }
@@ -177,7 +177,7 @@ export class Lexer {
       id += this.getNextChar()
     }
 
-    return this.createToken(Token.Identifier, id)
+    return this.createToken(LexerTokens.identifier, id)
   }
 
   private scanNumber(): TToken | undefined {
@@ -234,7 +234,7 @@ export class Lexer {
       throw new SyntaxError('Expecting decimal digits after the dot sign')
     }
 
-    return this.createToken(Token.Number, number)
+    return this.createToken(LexerTokens.number, number)
   }
 
   public reset(str:string): void {
@@ -298,11 +298,11 @@ export class Parser {
   }
 
   /**
-   * Returns true if the given token in an operator token with the given value
+   * Returns true if argument is an operator token with the given value
    */
   private matchOp(token:TToken|undefined, value:any): boolean {
-    return (typeof token !== 'undefined') &&
-      token.type === Token.Operator &&
+    return token !== undefined &&
+      token.type === LexerTokens.operator &&
       token.value === value
   }
 
@@ -362,7 +362,7 @@ export class Parser {
       throw new SyntaxError('Unexpected termination of expression')
     }
 
-    if (peekToken.type === Token.Identifier) {
+    if (peekToken.type === LexerTokens.identifier) {
       let token = this.lexer.next() as TToken
       if (this.matchOp(this.lexer.peek(), '(')) {
         return this.parseFunctionCall(token.value)
@@ -371,7 +371,7 @@ export class Parser {
       }
     }
 
-    if (peekToken.type === Token.Number) {
+    if (peekToken.type === LexerTokens.number) {
       let token = this.lexer.next() as TToken
       return {Number: token.value}
     }
@@ -445,7 +445,6 @@ export class Parser {
   // Assignment ::= Identifier '=' Assignment | Additive
   private parseAssignment(): TNode {
     let expr = this.parseAdditive()
-
     if (expr !== undefined && expr.Identifier) {
       let peekToken = this.lexer.peek()
       if (this.matchOp(peekToken, '=')) {
@@ -459,7 +458,6 @@ export class Parser {
       }
       return expr
     }
-
     return expr
   }
 
