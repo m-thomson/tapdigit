@@ -51,11 +51,14 @@ export function updateLexerTable(): void {
         if (typeof token === 'undefined') break
         tokens.push(token)
       }
-      let str = '<table style="width:200px">\n'
+      let str = '<table>\n'
+      str += '<tr><th>Type</th><th>Value</th><th>Pos</th></tr>'
       for (let i = 0; i < tokens.length; i += 1) {
         let token = tokens[i]
+        // console.log(token)
         str += `<tr><td>${token.type}</td>`
-        str += `<td style="text-align: center">${token.value}</td></tr>`
+        str += `<td style="text-align: center">${token.value}</td>`
+        str += `<td style="text-align: center">${token.start}</td></tr>`
       }
       tokenTableEl.innerHTML = str
     } catch (e) {
