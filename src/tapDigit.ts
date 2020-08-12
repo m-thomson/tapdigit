@@ -66,7 +66,6 @@ export class Lexer {
   length = 0
   index = 0
   marker = 0
-  T = Token
 
   private peekNextChar(): string {
     let idx = this.index
@@ -74,8 +73,8 @@ export class Lexer {
   }
 
   private getNextChar(): string {
-    let ch = '\x00',
-      idx = this.index
+    let ch = '\x00'
+    let idx = this.index
     if (idx < this.length) {
       ch = this.expression.charAt(idx)
       this.index += 1
@@ -105,10 +104,8 @@ export class Lexer {
   }
 
   private skipSpaces(): void {
-    let ch
-
     while (this.index < this.length) {
-      ch = this.peekNextChar()
+      let ch = this.peekNextChar()
       if (!this.isWhiteSpace(ch)) {
         break
       }
@@ -119,7 +116,7 @@ export class Lexer {
   private scanOperator(): TToken | undefined {
     let ch = this.peekNextChar()
     if ('+-*/()^%=;,'.indexOf(ch) >= 0) {
-      return this.createToken(this.T.Operator, this.getNextChar())
+      return this.createToken(Token.Operator, this.getNextChar())
     }
     return undefined
   }
@@ -133,14 +130,11 @@ export class Lexer {
   }
 
   private scanIdentifier(): TToken | undefined {
-    let ch, id
-
-    ch = this.peekNextChar()
+    let ch = this.peekNextChar()
     if (!this.isIdentifierStart(ch)) {
       return undefined
     }
-
-    id = this.getNextChar()
+    let id = this.getNextChar()
     while (true) {
       ch = this.peekNextChar()
       if (!this.isIdentifierPart(ch)) {
@@ -149,18 +143,16 @@ export class Lexer {
       id += this.getNextChar()
     }
 
-    return this.createToken(this.T.Identifier, id)
+    return this.createToken(Token.Identifier, id)
   }
 
   private scanNumber(): TToken | undefined {
-    let ch, number
-
-    ch = this.peekNextChar()
+    let ch = this.peekNextChar()
     if (!this.isDecimalDigit(ch) && (ch !== '.')) {
       return undefined
     }
 
-    number = ''
+    let number = ''
     if (ch !== '.') {
       number = this.getNextChar()
       while (true) {
@@ -208,7 +200,7 @@ export class Lexer {
       throw new SyntaxError('Expecting decimal digits after the dot sign')
     }
 
-    return this.createToken(this.T.Number, number)
+    return this.createToken(Token.Number, number)
   }
 
   public reset(str:string): void {
@@ -218,7 +210,6 @@ export class Lexer {
   }
 
   public next(): TToken|undefined {
-    let token
 
     this.skipSpaces()
     if (this.index >= this.length) {
@@ -227,7 +218,7 @@ export class Lexer {
 
     this.marker = this.index
 
-    token = this.scanNumber()
+    let token = this.scanNumber()
     if (typeof token !== 'undefined') {
       return token
     }
@@ -266,11 +257,10 @@ export class Lexer {
 export class Parser {
 
   private lexer = new Lexer()
-  private T = Token
 
   private matchOp(token:TToken|undefined, op:any): boolean {
     return (typeof token !== 'undefined') &&
-      token.type === this.T.Operator &&
+      token.type === Token.Operator &&
       token.value === op
   }
 
@@ -327,7 +317,7 @@ export class Parser {
       throw new SyntaxError('Unexpected termination of expression')
     }
 
-    if (peekToken.type === this.T.Identifier) {
+    if (peekToken.type === Token.Identifier) {
       let token = this.lexer.next() as TToken
       if (this.matchOp(this.lexer.peek(), '(')) {
         return this.parseFunctionCall(token.value)
@@ -336,7 +326,7 @@ export class Parser {
       }
     }
 
-    if (peekToken.type === this.T.Number) {
+    if (peekToken.type === Token.Number) {
       let token = this.lexer.next() as TToken
       return {Number: token.value}
     }
@@ -563,8 +553,6 @@ export class Evaluator {
     let tree = this.parser.parse(expr)
     return this.exec(tree.Expression)
   }
-
-  // return {evaluate}
 }
 
 // noinspection JSUnusedGlobalSymbols
