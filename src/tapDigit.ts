@@ -39,7 +39,7 @@ type TNode = {
   Number?: string     // Number literal (as string)
   Unary?: {           // An operation on a single item (eg. -5)
     operator: string
-    expression: TNode
+    expr: TNode
   }
   Binary?: {          // An operation between two items
     operator: string
@@ -430,7 +430,7 @@ export class Parser {
       return {
         Unary: {
           operator: token.value,
-          expression: expr
+          expr: expr
         }
       }
     }
@@ -563,7 +563,7 @@ export class Evaluator {
 
     if (node.Unary !== undefined) {
       let subNode = node.Unary
-      expr = this.exec(subNode.expression)
+      expr = this.exec(subNode.expr)
       switch (subNode.operator) {
         case '+':
           return expr

@@ -77,11 +77,9 @@ export function updateParserTree(): void {
     let syntaxPreEl = document.getElementById('syntax') as HTMLElement
     try {
       function stringify(object: {[x:string]:any}, key: string, depth: number) {
-        let indent = '', str = '', value = object[key]
-
-        while (indent.length < depth * 2) {
-          indent += ' '
-        }
+        let str = ''
+        let value = object[key]
+        let indent = '&nbsp;'.repeat(depth*2)
 
         let _typeof: string = (value === null) ? 'null' : typeof value
         switch (_typeof) {
@@ -101,7 +99,7 @@ export function updateParserTree(): void {
             }
             break
         }
-        return `${indent} ${key}: ${str}`
+        return `${indent} <span class="${key}">${key}</span>: ${str}`
       }
 
       let syntax = parser.parse(expr)
