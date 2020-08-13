@@ -130,3 +130,9 @@ export function updateEvalResult(): void {
     evalId = undefined
   }, 345)
 }
+
+export function updateCursorPosition():void {
+  let exprEl = document.getElementById('code') as HTMLInputElement
+  let el = document.getElementById('cursor') as HTMLElement
+  el.textContent = exprEl.selectionStart === null ? 'N/A' : exprEl.selectionStart.toString()
+}
