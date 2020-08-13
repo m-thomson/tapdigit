@@ -288,9 +288,19 @@ export class Lexer {
   }
 }
 
+class ParserError extends Error {
+  position:number
+  message:string
+  constructor(parser:Parser, message:string) {
+    super()
+    this.position = parser.lexer.marker - 1
+    this.message = `ParseError: ${message} [col=${this.position}]`
+  }
+}
+
 export class Parser {
 
-  private lexer = new Lexer()
+  public lexer = new Lexer()
   private context: TContext
 
   constructor(ctx?:TContext) {
@@ -302,8 +312,8 @@ export class Parser {
     let expr = this.parseExpression()
     let token = this.lexer.next()
 
-    if (typeof token !== 'undefined') {
-      throw new SyntaxError('Unexpected token ' + token.value)
+    if (token !== undefined) {
+      throw new ParserError(this, `Unexpected token "${token.value}"`)
     }
 
     return {
@@ -338,20 +348,25 @@ export class Parser {
     let token = this.lexer.next()
 
     if (!this.isOpToken(token, '(')) {
-      throw new SyntaxError('Expecting ( in a function call "' + name + '"')
+      throw new ParserError(this, 'Expecting "(" in a function call "' + name + '"')
+    }
+
+    if (this.context.Functions && !this.context.Functions[name]) {
+      throw new ParserError(this, `Unknown function "${name}"`)
     }
 
     let peekToken = this.lexer.peek()
     if (!this.isOpToken(peekToken, ')')) {
       args = this.parseArgumentList()
     }
-    if (args.length !== this.context.Functions[name][1]) {
-      console.warn(`Function ${name}() expects ${this.context.Functions[name][1]} argument(s), found ${args.length}`)
+
+    if (this.context.Functions && args.length !== this.context.Functions[name][1]) {
+      throw new ParserError(this, `Function ${name}() expects ${this.context.Functions[name][1]} arg(s), found ${args.length}`)
     }
 
     token = this.lexer.next()
     if (!this.isOpToken(token, ')')) {
-      throw new SyntaxError('Expecting ) in a function call "' + name + '"')
+      throw new ParserError(this, `Missing ")" in function "${name}"`)
     }
 
     return {
@@ -364,7 +379,7 @@ export class Parser {
     let peekToken = this.lexer.peek()
 
     if (peekToken === undefined) {
-      throw new SyntaxError('Unexpected termination of expression')
+      throw new ParserError(this, 'Unexpected end of expression')
     }
 
     if (peekToken.type === LexerTokens.identifier) {
@@ -386,12 +401,12 @@ export class Parser {
       let expr = this.parseAssignment()
       let token = this.lexer.next() as TToken
       if (!this.isOpToken(token, ')')) {
-        throw new SyntaxError('Expecting )')
+        throw new ParserError(this, 'Expecting ")"')
       }
       return {Expression: expr}
     }
 
-    throw new SyntaxError('Parse error, can not process token ' + peekToken.value)
+    throw new ParserError(this, `Unknown token "${peekToken.value}"`)
   }
 
   // Unary ::= Primary | '-' Unary
@@ -481,6 +496,16 @@ export class Parser {
   }
 }
 
+class EvaluatorError extends Error {
+  position: number
+  message: string
+  constructor(evaluator: Evaluator, message: string) {
+    super()
+    this.position = evaluator.parser.lexer.marker - 1
+    this.message = `EvaluatorError: ${message} at position ${this.position}`
+  }
+}
+
 export class Evaluator {
 
   context:TContext
@@ -520,7 +545,7 @@ export class Evaluator {
         case '/':
           return left / right
         default:
-          throw new SyntaxError('Unknown operator ' + subNode.operator)
+          throw new EvaluatorError(this, 'Unknown operator ' + subNode.operator)
       }
     }
 
@@ -533,7 +558,7 @@ export class Evaluator {
         case '-':
           return -expr
         default:
-          throw new SyntaxError('Unknown operator ' + subNode.operator)
+          throw new EvaluatorError(this, 'Unknown operator ' + subNode.operator)
       }
     }
 
@@ -544,7 +569,7 @@ export class Evaluator {
       if (this.context.Variables.hasOwnProperty(node.Identifier)) {
         return this.context.Variables[node.Identifier]
       }
-      throw new SyntaxError('Unknown identifier')
+      throw new EvaluatorError(this, 'Unknown identifier')
     }
 
     if (node.Assignment !== undefined) {
@@ -562,9 +587,9 @@ export class Evaluator {
         }
         return this.context.Functions[expr.name][0].apply(null, args)
       }
-      throw new SyntaxError('Unknown function ' + expr.name)
+      throw new EvaluatorError(this, 'Unknown function ' + expr.name)
     }
 
-    throw new SyntaxError('Unknown syntax node')
+    throw new EvaluatorError(this, 'Unknown syntax node')
   }
 }

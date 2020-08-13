@@ -55,7 +55,6 @@ export function updateLexerTable(): void {
       str += '<tr><th>Type</th><th>Value</th><th>Pos</th></tr>'
       for (let i = 0; i < tokens.length; i += 1) {
         let token = tokens[i]
-        // console.log(token)
         str += `<tr><td>${token.type}</td>`
         str += `<td style="text-align: center">${token.value}</td>`
         str += `<td style="text-align: center">${token.start}</td></tr>`
@@ -126,7 +125,7 @@ export function updateEvalResult(): void {
     try {
       el.textContent = evaluator.evaluate(expr).toString()
     } catch (e) {
-      el.textContent = 'Error: ' + e.toString()
+      el.textContent = e.message
     }
     evalId = undefined
   }, 345)
