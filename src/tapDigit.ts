@@ -56,38 +56,29 @@ type TNode = {
   }
 }
 
-type TFuncDef = [Function, number]
 
-type TContext = {
-  Constants: { [x: string]: number }
-  Functions: { [x: string]: TFuncDef }
-  Variables: { [x: string]: number }
+export const builtIns = {
+  identifiers: {
+    pi: 3.1415926535897932384,
+    phi: 1.6180339887498948482
+  },
+  functions: {
+    abs: Math.abs,
+    acos: Math.acos,
+    asin: Math.asin,
+    atan: Math.atan,
+    ceil: Math.ceil,
+    cos: Math.cos,
+    exp: Math.exp,
+    ln: Math.log,
+    sin: Math.sin,
+    sqrt: Math.sqrt,
+    tan: Math.tan,
+    floor: Math.floor,
+    random: Math.random,
+  },
 }
 
-function Context(): TContext {
-  return {
-    Constants: {
-      pi: 3.1415926535897932384,
-      phi: 1.6180339887498948482
-    },
-    Functions: {
-      abs: [Math.abs, 1],
-      acos: [Math.acos, 1],
-      asin: [Math.asin, 1],
-      atan: [Math.atan, 1],
-      ceil: [Math.ceil, 1],
-      cos: [Math.cos, 1],
-      exp: [Math.exp, 1],
-      floor: [Math.floor, 1],
-      ln: [Math.log, 1],
-      random: [Math.random, 1],
-      sin: [Math.sin, 1],
-      sqrt: [Math.sqrt, 1],
-      tan: [Math.tan, 1],
-    },
-    Variables: {},
-  }
-}
 
 const LexerTokens = {
   operator: 'Operator',
@@ -313,14 +304,16 @@ class ParserError extends Error {
 export class Parser {
 
   public lexer = new Lexer()
-  private context: TContext
+  public warnings:string[] = []
 
-  constructor(ctx?:TContext) {
-    this.context = ctx ? ctx : Context()
+  constructor(
+    readonly validFuncs:{ [name: string]: { (...args: any[]): number } },
+    readonly validIdentifiers?: { [name: string]: any }) {
   }
 
   public parse(expression: string): Required<Pick<TNode, 'Expression'>> {
     this.lexer.reset(expression)
+    this.warnings = []
     let expr = this.parseExpression()
     let token = this.lexer.next()
 
@@ -363,22 +356,21 @@ export class Parser {
       throw new ParserError(this, 'Expecting "(" in a function call "' + name + '"')
     }
 
-    if (this.context.Functions && !this.context.Functions[name]) {
-      throw new ParserError(this, `Unknown function "${name}"`)
-    }
-
     let peekToken = this.lexer.peek()
     if (!this.isOpToken(peekToken, ')')) {
       args = this.parseArgumentList()
     }
 
-    if (this.context.Functions && args.length !== this.context.Functions[name][1]) {
-      throw new ParserError(this, `Function ${name}() expects ${this.context.Functions[name][1]} arg(s), found ${args.length}`)
-    }
-
     token = this.lexer.next()
     if (!this.isOpToken(token, ')')) {
       throw new ParserError(this, `Missing ")" in function "${name}"`)
+    }
+
+    if (!this.validFuncs[name]) {
+      this.warnings.push(`Unknown function "${name}"`)
+    }
+    else if (args.length !== this.validFuncs[name].length) {
+      this.warnings.push(`Function ${name}() expects ${this.validFuncs[name].length} arg(s), found ${args.length}`)
     }
 
     return {
@@ -399,6 +391,9 @@ export class Parser {
       if (this.isOpToken(this.lexer.peek(), '(')) {
         return this.parseFunctionCall(token.value)
       } else {
+        if (this.validIdentifiers && !this.validIdentifiers[token.value]) {
+          this.warnings.push(`Unknown identifier "${token.value}"`)
+        }
         return {Identifier: token.value}
       }
     }
@@ -520,11 +515,13 @@ class EvaluatorError extends Error {
 
 export class Evaluator {
 
-  context:TContext
-  parser = new Parser()
+  parser:Parser
 
-  constructor(ctx?: TContext) {
-    this.context = ctx || Context()
+  constructor(
+    readonly functions: { [name: string]: { (...args: any[]): number } },
+    readonly identifiers: { [name: string]: number })
+  {
+    this.parser = new Parser(functions, identifiers)
   }
 
   public evaluate(expr: string): number {
@@ -575,29 +572,28 @@ export class Evaluator {
     }
 
     if (node.Identifier !== undefined) {
-      if (this.context.Constants.hasOwnProperty(node.Identifier)) {
-        return this.context.Constants[node.Identifier]
+      if (this.identifiers.hasOwnProperty(node.Identifier)) {
+        return this.identifiers[node.Identifier]
       }
-      if (this.context.Variables.hasOwnProperty(node.Identifier)) {
-        return this.context.Variables[node.Identifier]
-      }
-      throw new EvaluatorError(this, 'Unknown identifier')
+      throw new EvaluatorError(this, `Unknown identifier "${node.Identifier}"`)
     }
 
     if (node.Assignment !== undefined) {
       let right = this.exec(node.Assignment.value)
-      this.context.Variables[node.Assignment.name.Identifier] = right
+      this.identifiers[node.Assignment.name.Identifier] = right
       return right
     }
 
     if (node.FunctionCall !== undefined) {
       expr = node.FunctionCall
-      if (this.context.Functions.hasOwnProperty(expr.name)) {
+      if (this.functions.hasOwnProperty(expr.name)) {
         let args = []
         for (let i = 0; i < expr.args.length; i += 1) {
           args.push(this.exec(expr.args[i]))
         }
-        return this.context.Functions[expr.name][0].apply(null, args)
+        if (typeof this.functions[expr.name] === 'function')
+          return this.functions[expr.name](...args)
+        throw new EvaluatorError(this, `The function "${expr.name}" does not have a valid callback`)
       }
       throw new EvaluatorError(this, 'Unknown function ' + expr.name)
     }

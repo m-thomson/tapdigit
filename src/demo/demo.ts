@@ -26,13 +26,13 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-import {Evaluator, Parser, Lexer} from "../tapDigit.js"
+import {Evaluator, Parser, Lexer, builtIns} from "../tapDigit.js"
 
 let lexerTableId: number|undefined
 let parserTreeId: number|undefined
 let evalId: number|undefined
-let evaluator = new Evaluator()
-let parser = new Parser()
+let parser = new Parser(builtIns.functions, builtIns.identifiers)
+let evaluator = new Evaluator(builtIns.functions, builtIns.identifiers)
 let lexer = new Lexer()
 
 // noinspection JSUnusedGlobalSymbols
@@ -104,6 +104,7 @@ export function updateParserTree(): void {
 
       let syntax = parser.parse(expr)
       syntaxPreEl.innerHTML = stringify(syntax, 'Expression', 0)
+      console.log('id',parser)
     } catch (e) {
       syntaxPreEl.innerText = e.message
     }
