@@ -86,14 +86,14 @@ const LexerTokens = {
   number: 'Number'
 }
 
-class LexerError extends Error {
+export class LexerError extends Error {
   position: number
   message: string
 
   constructor(lexer: Lexer, message: string) {
     super()
     this.position = lexer.marker - 1
-    this.message = `LexerError: ${message} [col=${this.position}]`
+    this.message = `${message} at character ${this.position}`
   }
 }
 
@@ -291,13 +291,13 @@ export class Lexer {
   }
 }
 
-class ParserError extends Error {
+export class ParserError extends Error {
   position:number
   message:string
   constructor(parser:Parser, message:string) {
     super()
     this.position = parser.lexer.marker - 1
-    this.message = `ParseError: ${message} [col=${this.position}]`
+    this.message = `${message} at character ${this.position}`
   }
 }
 
@@ -367,7 +367,7 @@ export class Parser {
     }
 
     if (!this.validFuncs[name]) {
-      this.warnings.push(`Unknown function "${name}"`)
+      this.warnings.push(`Unknown function "${name}()"`)
     }
     else if (args.length !== this.validFuncs[name].length) {
       this.warnings.push(`Function ${name}() expects ${this.validFuncs[name].length} arg(s), found ${args.length}`)
@@ -503,7 +503,7 @@ export class Parser {
   }
 }
 
-class EvaluatorError extends Error {
+export class EvaluatorError extends Error {
   position: number
   message: string
   constructor(evaluator: Evaluator, message: string) {
