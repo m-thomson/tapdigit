@@ -122,7 +122,8 @@ export function updateEvalResult(): void {
     let expr = (document.getElementById('code') as HTMLInputElement).value
     let el = document.getElementById('result') as HTMLElement
     try {
-      el.textContent = evaluator.evaluate(expr).toString()
+      let result = evaluator.evaluate(expr)
+      el.textContent = result ? result.toString() : 'N/A'
     } catch (e) {
       el.textContent = e.message
     }

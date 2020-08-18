@@ -92,7 +92,7 @@ export class LexerError extends Error {
 
   constructor(lexer: Lexer, message: string) {
     super()
-    this.position = lexer.marker - 1
+    this.position = Math.max(lexer.marker - 1, 0)
     this.message = `${message} at character ${this.position}`
   }
 }
@@ -296,7 +296,7 @@ export class ParserError extends Error {
   message:string
   constructor(parser:Parser, message:string) {
     super()
-    this.position = parser.lexer.marker - 1
+    this.position = Math.max(parser.lexer.marker - 1, 0)
     this.message = `${message} at character ${this.position}`
   }
 }
@@ -311,7 +311,9 @@ export class Parser {
     readonly validIdentifiers?: { [name: string]: any }) {
   }
 
-  public parse(expression: string): Required<Pick<TNode, 'Expression'>> {
+  public parse(expression: string): Required<Pick<TNode, 'Expression'>>|{Expression:undefined} {
+    if (expression.trim() === "")
+      return { Expression:undefined }
     this.lexer.reset(expression)
     this.warnings = []
     let expr = this.parseExpression()
@@ -508,8 +510,8 @@ export class EvaluatorError extends Error {
   message: string
   constructor(evaluator: Evaluator, message: string) {
     super()
-    this.position = evaluator.parser.lexer.marker - 1
-    this.message = `EvaluatorError: ${message} at position ${this.position}`
+    this.position = Math.max(evaluator.parser.lexer.marker - 1, 0)
+    this.message = `${message} at position ${this.position}`
   }
 }
 
@@ -524,8 +526,9 @@ export class Evaluator {
     this.parser = new Parser(functions, identifiers)
   }
 
-  public evaluate(expr: string): number {
+  public evaluate(expr: string): number|null {
     let tree = this.parser.parse(expr)
+    if (tree.Expression === undefined) return null
     return this.exec(tree.Expression)
   }
 
