@@ -142,6 +142,7 @@ export class Lexer {
     try {
       token = this.next()
       if (token !== undefined) {
+        //
         if (token.start !== undefined) delete token?.start
         if (token.end !== undefined) delete token?.end
       }
