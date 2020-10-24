@@ -29,8 +29,8 @@
 type TToken = {
   type: string,
   value: any,
-  start: number,
-  end: number
+  start?: number,
+  end?: number
 }
 
 type TNode = {
@@ -142,9 +142,8 @@ export class Lexer {
     try {
       token = this.next()
       if (token !== undefined) {
-        //
-        if (token.start !== undefined) delete token?.start
-        if (token.end !== undefined) delete token?.end
+        delete token.start
+        delete token.end
       }
     } catch (e) {
       token = undefined
