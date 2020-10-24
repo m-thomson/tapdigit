@@ -99,11 +99,11 @@ export function Editor(element: HTMLElement) {
 
       for (let i = 0; i < tokens.length; i += 1) {
         let token = tokens[i]
-        while (text.length < token.start) {
+        while (text.length < token.start!) {
           text += ' '
           html += '<span class="blank"> </span>'
         }
-        let str = expr.substring(token.start, token.end + 1)
+        let str = expr.substring(token.start!, token.end! + 1)
         for (let j = 0; j < str.length; j += 1) {
           html += `<span class="${token.type}">`
           html += str.charAt(j)
